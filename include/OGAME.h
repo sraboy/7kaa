@@ -76,6 +76,7 @@ struct ScenInfo
 	char		dir_id;			// real path look from DIR_SCENARIO_PATH(dir_id)
 	short		goal_difficulty;
 	short 	goal_score_bonus;
+	bool	played;
 };
 
 //-------- Define class Game -----------//
@@ -107,6 +108,7 @@ public:
 	int			in_game_option_menu();
 	void 			game_end(int winNationRecno, int playerDestroyed=0, int surrenderToNationRecno=0, int retireFlag=0);
 
+	void			write_scenario_list(int scenCount, ScenInfo* scenInfoArray);
 	int 			select_run_scenario();
 	int 			select_scenario(int scenCount, ScenInfo* scenInfoArray);
 	int 			run_scenario(ScenInfo* scenInfo);

@@ -74,6 +74,7 @@ int Game::select_run_scenario()
 					char	txtFileName[20];
 					scenInfoArray[scenInfoSize].file_name = gameDir[i]->name;    // keep the pointers to the file name string
 					scenInfoArray[scenInfoSize].dir_id    = dirId;
+					scenInfoArray[scenInfoSize].played    = false;				 // default to false until scn_list.txt is read
 
 					{
 						misc.change_file_ext( txtFileName, gameDir[i]->name, "SCT" );
@@ -111,6 +112,41 @@ int Game::select_run_scenario()
 
 	qsort(scenInfoArray, scenInfoSize, sizeof(ScenInfo), sort_scenario_func);
 
+	//-------- check or create scn_list.txt file ---------- //
+	
+	FILE *f;
+	String filePath(sys.dir_config);
+	filePath += "\\scn_list.txt";
+
+	if (f = fopen(filePath, "r"))
+	{
+		String line;
+
+		for (int i = 0; i < scenInfoSize; i++)
+		{
+			fgets(line, 256, f);
+			if (strcmp(line, scenInfoArray[i].scen_name) != 0)
+			{
+				//read the Played token
+				fgets(line, 256, f);
+				char token = line[7];
+				int val = token - '0';
+				scenInfoArray[i].played = val;
+			}
+			else
+			{
+				//assume false
+				scenInfoArray[i].played = false;
+			}
+		}
+
+		fclose(f);
+	}
+	else //the file doesn't exist
+	{
+		write_scenario_list(scenInfoSize, scenInfoArray);
+	}
+
 	//-------- select and run a scenario --------//
 
 	int rc = select_scenario( scenInfoSize, scenInfoArray );
@@ -126,6 +162,27 @@ int Game::select_run_scenario()
 }
 //------------ End of function Game::select_run_scenario -----------//
 
+void Game::write_scenario_list(int scenCount, ScenInfo* scenInfoArray)
+{
+	String filePath(sys.dir_config);
+	filePath += "\\scn_list.txt";
+	FILE* f;
+
+	const char *played = "Played:";
+	if (f = fopen(filePath, "w"))
+	{
+		for (int i = 0; i < scenCount; i++)
+		{
+			// write scenario name
+			fprintf(f, "%s\n", scenInfoArray[i].scen_name);
+			//write played token
+			fprintf(f, played);
+			fprintf(f, "%d\n", scenInfoArray[i].played);
+		}
+	}
+
+	fclose(f);
+}
 
 //---------- Begin of function Game::run_scenario ----------//
 //
