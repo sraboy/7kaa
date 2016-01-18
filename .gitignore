@@ -74,4 +74,16 @@ po/insert-header.sin
 po/quot.sed
 po/remove-potcdate.sin
 po/*.gmo
+<<<<<<< HEAD
 po/stamp-po
+po/POTFILES
+po/remove-potcdate.sed
+compile
+*.opensdf
+*.obj
+=======
+<<<<<<< HEAD
+*.opensdf
+*.obj
+po/stamp-po
+>>>>>>> 80fa1702fe1c1435b97c1e6a45b6bd5e8737122f
