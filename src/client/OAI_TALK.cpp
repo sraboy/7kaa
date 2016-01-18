@@ -1062,24 +1062,24 @@ int Nation::consider_accept_surrender_request(TalkMsg* talkMsg)
 
 	int acceptRating = overall_rank_rating()*13 + 100;
 
-	//------ AI aggressiveness effects -------//
+	////------ AI aggressiveness effects -------//
 
-	switch( config.ai_aggressiveness )
-	{
-		case OPTION_HIGH:
-			if( nationPtr->is_ai() )		// tend to accept AI kingdom offer easier
-				acceptRating -= 75;
-			else
-				acceptRating += 75;
-			break;
+	//switch( config.ai_aggressiveness )
+	//{
+	//	case OPTION_HIGH:
+	//		if( nationPtr->is_ai() )		// tend to accept AI kingdom offer easier
+	//			acceptRating -= 75;
+	//		else
+	//			acceptRating += 75;
+	//		break;
 
-		case OPTION_VERY_HIGH:
-			if( nationPtr->is_ai() )		// tend to accept AI kingdom offer easier
-				acceptRating -= 150;
-			else
-				acceptRating += 150;
-			break;
-	}
+	//	case OPTION_VERY_HIGH:
+	//		if( nationPtr->is_ai() )		// tend to accept AI kingdom offer easier
+	//			acceptRating -= 150;
+	//		else
+	//			acceptRating += 150;
+	//		break;
+	//}
 
 	return surrenderToRating > acceptRating;
 }
