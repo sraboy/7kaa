@@ -413,9 +413,17 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 							textX = font_bible.put(textX, browseSlotY1+TEXT_OFFSET_Y,
 								_(scenTitle), 0, browseSlotX2 );
 
+							//---- display whether or not the scenario has been played ----//
+
+							String str(_("Played : "));
+							str += (scenInfoArray[rec - 1].played == true) ? "Yes" : "No";
+
+							font_bible.put(browseSlotX1 + TEXT_OFFSET_X + 270, browseSlotY1 + TEXT_OFFSET_Y,
+								str, 0, browseSlotX2);
+
 							//---- display the scenario difficulty and bonus points ----//
 
-							String str(_("Difficulty : "));
+							str = (_("Difficulty : "));
 							str += scenInfoArray[rec-1].goal_difficulty;
 
 							font_bible.put(browseSlotX1+TEXT_OFFSET_X+400, browseSlotY1+TEXT_OFFSET_Y,
@@ -540,6 +548,13 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 			// load button
 			refreshFlag = TUOPTION_ALL;
 			retFlag = browseRecno;
+
+			//mark as played
+			if (scenInfoArray[retFlag - 1].played == false)
+			{
+				scenInfoArray[retFlag - 1].played = true;
+				write_scenario_list(scenCount, scenInfoArray);
+			}
 			break;
 		}
 	}
