@@ -413,17 +413,10 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 							textX = font_bible.put(textX, browseSlotY1+TEXT_OFFSET_Y,
 								_(scenTitle), 0, browseSlotX2 );
 
-							//---- display whether or not the scenario has been played ----//
-
-							String str(_("Played : "));
-							str += (scenInfoArray[rec - 1].played == true) ? "Yes" : "No";
-
-							font_bible.put(browseSlotX1 + TEXT_OFFSET_X + 270, browseSlotY1 + TEXT_OFFSET_Y,
-								str, 0, browseSlotX2);
 
 							//---- display the scenario difficulty and bonus points ----//
 
-							str = (_("Difficulty : "));
+							String str = (_("Difficulty : "));
 							str += scenInfoArray[rec-1].goal_difficulty;
 
 							font_bible.put(browseSlotX1+TEXT_OFFSET_X+400, browseSlotY1+TEXT_OFFSET_Y,
@@ -434,6 +427,11 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 
 							font_bible.put(browseSlotX1+TEXT_OFFSET_X+530, browseSlotY1+TEXT_OFFSET_Y,
 												str, 0, browseSlotX2 );
+
+							//---- display whether or not the scenario has been played ----//
+
+							if (scenInfoArray[rec - 1].played == true)
+								image_menu.put_front(browseSlotX1 + TEXT_OFFSET_X + 675, browseSlotY1 + TEXT_OFFSET_Y + 5, "NMPG-RCH");
 
 							//--------------------------------------//
 
