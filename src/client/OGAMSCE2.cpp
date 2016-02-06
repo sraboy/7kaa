@@ -432,7 +432,8 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 
 							if (scenInfoArray[rec - 1].played == true)
 								image_menu.put_front(browseSlotX1 + TEXT_OFFSET_X + 675, browseSlotY1 + TEXT_OFFSET_Y + 5, "NMPG-RCH");
-
+							else
+								image_menu.put_front(browseSlotX1 + TEXT_OFFSET_X + 675, browseSlotY1 + TEXT_OFFSET_Y + 5, "NMPG-UCH");
 							//--------------------------------------//
 
 							if( rec == browseRecno )
