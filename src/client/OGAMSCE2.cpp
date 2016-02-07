@@ -413,10 +413,9 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 							textX = font_bible.put(textX, browseSlotY1+TEXT_OFFSET_Y,
 								_(scenTitle), 0, browseSlotX2 );
 
-
 							//---- display the scenario difficulty and bonus points ----//
 
-							String str = (_("Difficulty : "));
+							String str(_("Difficulty : "));
 							str += scenInfoArray[rec-1].goal_difficulty;
 
 							font_bible.put(browseSlotX1+TEXT_OFFSET_X+400, browseSlotY1+TEXT_OFFSET_Y,
@@ -430,10 +429,27 @@ int Game::select_scenario(int scenCount, ScenInfo* scenInfoArray)
 
 							//---- display whether or not the scenario has been played ----//
 
+							int x = browseSlotX1 + TEXT_OFFSET_X + 675;
+							int y = browseSlotY1 + TEXT_OFFSET_Y + 5;
+
 							if (scenInfoArray[rec - 1].played == true)
-								image_menu.put_front(browseSlotX1 + TEXT_OFFSET_X + 675, browseSlotY1 + TEXT_OFFSET_Y + 5, "NMPG-RCH");
+								image_menu.put_front(x, y, "NMPG-RCH");
 							else
-								image_menu.put_front(browseSlotX1 + TEXT_OFFSET_X + 675, browseSlotY1 + TEXT_OFFSET_Y + 5, "NMPG-UCH");
+							{
+								//---- draw a pseudo-3D empty checkbox ----//
+								//unchecked version of NMPG-RCH checkbox
+								vga_front.rect(x, y, x + 14, y + 14, 10, V_WHITE); //white background
+								vga_front.line(x, y, x + 14, y, V_WHITE - 8);      //top
+								vga_front.line(x, y, x, y + 14, V_WHITE - 8);      //left
+								x += 1;
+								y += 1;
+								vga_front.line(x, y, x + 13, y, V_WHITE - 6);	   //inner shadow top
+								vga_front.line(x, y, x, y + 13, V_WHITE - 6);	   //inner shadow left
+								x += 1;
+								y += 1;
+								vga_front.rect(x, y, x + 12, y + 12, 1, V_WHITE - 1);  //another inner shadow
+							}
+							
 							//--------------------------------------//
 
 							if( rec == browseRecno )
