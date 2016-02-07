@@ -12,4 +12,5 @@ I do not maintain the VS2010 solution but one of 7KAA's primary developers does 
 A couple notes:
 
 * Visual Studio is not officially supported by the project (so no PRs with all the VS stuff).
+* If you get errors about not being able to find SDL, OpenAL or the game's data, go to the project's property page (Debug>>7kaa Properties) and specify a Working Directory in the Debugging section. 
 * I've enabled the Issues tracker on this repo but it is not part of the official project. I occasionally work on unofficial features/changes and wanted a place to track my own issues.
