@@ -78,6 +78,10 @@ CHGPROD
 _("Change Production")
 _("This will toggle production in this factory between iron, copper and clay products.")
 ~
+MKTYPE
+_("Market Type")
+_("This will toggle the resources prioritized at this market between raw and finished products, or either. An unprioritized resource taking up a slot but with 0 for the amount will auto-clear for a prioritized resource that becomes available.")
+~
 COLLTAX
 _("Collect Tax")
 _("This will collect tax from the selected village. If you right-click on this you will be able to tax your villagers automatically.")

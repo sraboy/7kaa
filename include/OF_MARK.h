@@ -120,6 +120,7 @@ public:
 	short		hire_caravan(char remoteAction);
 	int		can_hire_caravan();
 
+	void		change_market_type();
 	void		set_goods(int isRaw, int goodsId, int position);
 	void		clear_market_goods(int position);
 
@@ -136,6 +137,7 @@ public:
 	virtual	void	clear_ptr();
 
 private:
+	String      market_type = "retail";
 	void		put_market_info(int dispY1, int refreshFlag);
 	void 		disp_income(int dispY1, int refreshFlag);
 	void 		input_goods(int maxInputQty);
