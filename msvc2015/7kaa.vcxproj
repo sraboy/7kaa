@@ -41,6 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>$(ProjectDir)..\SDL\lib\x86;$(ProjectDir)..\enet;$(ProjectDir)..\OpenAL\lib;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
+	<LocalDebuggerWorkingDirectory>$(ProjectDir)..\data\</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LibraryPath>$(ProjectDir)..\SDL\lib\x86;$(ProjectDir)..\enet;$(ProjectDir)..\OpenAL\lib;$(LibraryPath)</LibraryPath>
