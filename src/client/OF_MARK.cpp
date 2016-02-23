@@ -263,7 +263,7 @@ void FirmMarket::put_info(int refreshFlag)
 	if (refreshFlag == INFO_REPAINT)
 	{
 		button_hire_caravan.paint(INFO_X1, INFO_Y1 + 236, 'A', "HIRECARA");
-		button_toggle_accepted_goods.paint(INFO_X1 + BUTTON_ACTION_WIDTH, INFO_Y1 + 236, 'A', "CHGPROD");
+		button_toggle_accepted_goods.paint(INFO_X1 + BUTTON_ACTION_WIDTH, INFO_Y1 + 236, 'A', "MKTYP");
 		button_toggle_accepted_goods.set_help_code("MKTYPE");
 	}
 
