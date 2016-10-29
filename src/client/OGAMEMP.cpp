@@ -551,6 +551,9 @@ void Game::multi_player_game(int lobbied, char *game_host)
 	#ifdef DEBUG
 		mp_build_flags |= 0x00000001;
 	#endif
+	#ifdef DEV_VERSION
+		mp_build_flags |= 0x00000002;
+	#endif
 
 	info.init_random_seed(0);			// initialize the random seed
 
@@ -560,9 +563,7 @@ void Game::multi_player_game(int lobbied, char *game_host)
 	{
 		// not launched from lobby
 
-		//service_mode = mp_select_service();
-		// skip service selection since there is only one choice
-		service_mode = 2;
+		service_mode = mp_select_service();
 		if (!service_mode)
 		{
 			mp_obj.deinit();
@@ -594,8 +595,7 @@ void Game::multi_player_game(int lobbied, char *game_host)
 
 	if (service_mode == 3 || service_mode == 4)
 	{
-		// internet game list provider
-		mp_obj.set_remote_session_provider("www.7kfans.com");
+		mp_obj.set_service_provider("www.7kfans.com");
 	}
 
 	if (service_mode == 4)
@@ -607,7 +607,7 @@ void Game::multi_player_game(int lobbied, char *game_host)
 	}
 
 	// create game or join game
-	switch( mp_select_mode(NULL) )
+	switch( mp_select_mode(NULL, service_mode) )
 	{
 	case 1:		// create game
 		{
@@ -623,7 +623,7 @@ void Game::multi_player_game(int lobbied, char *game_host)
 			password[0] = 0;
 			if (!input_box(_("Set the game's password:"), password, MP_FRIENDLY_NAME_LEN+1))
 				password[0] = 0;
-			if (!mp_obj.create_session(game_name, password, config.player_name, MAX_NATION))
+			if (!mp_obj.create_session(game_name, password, MAX_NATION))
 			{
 				box.msg(_("Cannot create the game."));
 				mp_obj.deinit();
@@ -675,7 +675,7 @@ void Game::multi_player_game(int lobbied, char *game_host)
 				return;
 			}
 
-			if (!mp_join_session(choice, config.player_name))
+			if (!mp_join_session(choice))
 			{
 				mp_obj.deinit();
 				return;
@@ -780,9 +780,7 @@ void Game::load_mp_game(char *fileName, int lobbied, char *game_host)
 	{
 		// not launched from lobby
 
-		//service_mode = mp_select_service();
-		// skip service selection since there is only one choice
-		service_mode = 2;
+		service_mode = mp_select_service();
 		if (!service_mode)
 		{
 			mp_obj.deinit();
@@ -814,8 +812,7 @@ void Game::load_mp_game(char *fileName, int lobbied, char *game_host)
 
 	if (service_mode == 3 || service_mode == 4)
 	{
-		// internet game list provider
-		mp_obj.set_remote_session_provider("www.7kfans.com");
+		mp_obj.set_service_provider("www.7kfans.com");
 	}
 
 	if (service_mode == 4)
@@ -841,7 +838,7 @@ void Game::load_mp_game(char *fileName, int lobbied, char *game_host)
 			++gamePlayerCount;
 
 	// create game or join game
-	switch( mp_select_mode(fileName) )
+	switch( mp_select_mode(fileName, service_mode) )
 	{
 	case 1:		// create game
 		{
@@ -857,7 +854,7 @@ void Game::load_mp_game(char *fileName, int lobbied, char *game_host)
 			password[0] = 0;
 			if (!input_box(_("Set the game's password:"), password, MP_FRIENDLY_NAME_LEN+1))
 				password[0] = 0;
-			if (!mp_obj.create_session(game_name, password, config.player_name, gamePlayerCount))
+			if (!mp_obj.create_session(game_name, password, gamePlayerCount))
 			{
 				box.msg(_("Cannot create the game."));
 				mp_obj.deinit();
@@ -909,7 +906,7 @@ void Game::load_mp_game(char *fileName, int lobbied, char *game_host)
 				return;
 			}
 
-			if (!mp_join_session(choice, config.player_name))
+			if (!mp_join_session(choice))
 			{
 				mp_obj.deinit();
 				return;
@@ -987,11 +984,24 @@ void Game::load_mp_game(char *fileName, int lobbied, char *game_host)
 // 
 int Game::mp_select_service()
 {
-	enum { BUTTON_NUM = 4 };
-	static short buttonX[BUTTON_NUM] = { 206, 412, 206, 412 };
-	static short buttonY[BUTTON_NUM] = { 94, 94, 254, 254 };
-	#define SERVICE_BUTTON_WIDTH SERVICE_OPTION_X_SPACE
-	#define SERVICE_BUTTON_HEIGHT SERVICE_OPTION_HEIGHT
+	enum { BUTTON_NUM = 3 };
+	static short buttonX[BUTTON_NUM] = { 171, 171, 171 };
+	static short buttonY[BUTTON_NUM] = {  57, 125, 193 };
+	#define SERVICE_BUTTON_WIDTH 459
+	#define SERVICE_BUTTON_HEIGHT 67
+	enum { DESC_MARGIN = 10, DESC_TOP_MARGIN = 6 };
+	const char *service_short_desc[BUTTON_NUM] =
+	{
+		"Local Area Network",
+		"Enter Address",
+		"7kfans.com",
+	};
+	const char *service_long_desc[BUTTON_NUM] =
+	{
+		"Host or join a game using the local area network",
+		"Join a game by entering an address",
+		"Host or join a game over the internet",
+	};
 
 #define SVOPTION_PAGE        0x00000001
 #define SVOPTION_ALL         0x0fffffff
@@ -1030,6 +1040,7 @@ int Game::mp_select_service()
 		vga_front.lock_buf();
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if (sys.signal_exit_flag == 1)
@@ -1045,6 +1056,10 @@ int Game::mp_select_service()
 				//--------- display interface screen -------//
 
 				image_menu.put_to_buf( &vga_back, "MPG-PG1" );
+				// protection : image_menu.put_to_buf( &vga_back, "MPG-PG1");
+				// ensure the user has the release version (I_MENU.RES)
+				// image_menu2.put_to_buf( &vga_back, "MPG-PG1") get the real one
+				image_menu2.put_to_buf( &vga_back, "MPG-PG1");
 				image_menu.put_back( 234, 15,
 					sub_game_mode == 0 ? (char*)"TOP-NMPG" : (char*)"TOP-LMPG" );
 				vga_util.blt_buf(0, 0, vga_back.buf_width()-1, vga_back.buf_height()-1, 0);
@@ -1052,18 +1067,21 @@ int Game::mp_select_service()
 				returnButton.paint();
 				for( b = 0; b < buttonCount; ++b )
 				{
+					int y = buttonY[b]+DESC_TOP_MARGIN;
+					// write service name to back buffer
+					char useBack = vga.use_back_buf;
+					vga.use_back();
+					font_bible.center_put(buttonX[b], y,
+						buttonX[b]+SERVICE_BUTTON_WIDTH-1, y+font_bible.max_font_height-1,
+						_(service_short_desc[b]));
+					y += font_bible.max_font_height;
+					font_san.put_paragraph(buttonX[b]+DESC_MARGIN, y,
+						buttonX[b]+SERVICE_BUTTON_WIDTH-DESC_MARGIN-1, buttonY[b]+SERVICE_BUTTON_HEIGHT-1,
+						_(service_long_desc[b]));
+					if( !useBack )
+						vga.use_front();
 					serviceButton[b].paint();
 				}
-
-				// TODO: Properly change these buttons
-				vga_front.d3_panel_up(buttonX[0], buttonY[0], buttonX[0] + SERVICE_BUTTON_WIDTH, buttonY[0] + SERVICE_BUTTON_HEIGHT, 0);
-				font_san.put(buttonX[0] + 10, buttonY[0] + 10, _("Local Area Network"), 0, VGA_WIDTH);
-				vga_front.d3_panel_up(buttonX[1], buttonY[1], buttonX[1] + SERVICE_BUTTON_WIDTH, buttonY[1] + SERVICE_BUTTON_HEIGHT, 0);
-				font_san.put(buttonX[1] + 10, buttonY[1] + 10, _("Enter IP Address"), 0, VGA_WIDTH);
-				vga_front.d3_panel_up(buttonX[2], buttonY[2], buttonX[2] + SERVICE_BUTTON_WIDTH, buttonY[2] + SERVICE_BUTTON_HEIGHT, 0);
-				font_san.put(buttonX[2] + 10, buttonY[2] + 10, "www.7kfans.com", 0, VGA_WIDTH);
-				vga_front.d3_panel_up(buttonX[3], buttonY[3], buttonX[3] + SERVICE_BUTTON_WIDTH, buttonY[3] + SERVICE_BUTTON_HEIGHT, 0);
-				font_san.put(buttonX[3] + 10, buttonY[3] + 10, _("7kfans Leader Board"), 0, VGA_WIDTH);
 			}
 
 			refreshFlag = 0;
@@ -1115,13 +1133,26 @@ int Game::mp_select_service()
 
 //-------- Begin of function Game::mp_select_mode --------//
 // return 0 = cancel, 1 = create, 2 = join
-int Game::mp_select_mode(char *defSaveFileName)
+int Game::mp_select_mode(char *defSaveFileName, int service_mode)
 {
-	enum { BUTTON_NUM = 4 };
-	static short buttonX[BUTTON_NUM] = { 206, 412, 206, 412 };
-	static short buttonY[BUTTON_NUM] = { 94, 94, 254, 254 };
-	#define SERVICE_BUTTON_WIDTH SERVICE_OPTION_X_SPACE
-	#define SERVICE_BUTTON_HEIGHT SERVICE_OPTION_HEIGHT
+	enum { BUTTON_NUM = 3 };
+	static short buttonX[BUTTON_NUM] = { 171, 171, 171 };
+	static short buttonY[BUTTON_NUM] = {  57, 125, 193 };
+	#define SERVICE_BUTTON_WIDTH 459
+	#define SERVICE_BUTTON_HEIGHT 67
+	enum { DESC_MARGIN = 10, DESC_TOP_MARGIN = 6 };
+	const char *service_short_desc[BUTTON_NUM] =
+	{
+		"Local Area Network",
+		"Enter Address",
+		"7kfans.com",
+	};
+	const char *service_long_desc[BUTTON_NUM] =
+	{
+		"Host or join a game using the local area network",
+		"Join a game by entering an address",
+		"Host or join a game over the internet",
+	};
 
 #define SMOPTION_GETA(n)   (1 << n)
 #define SMOPTION_GETA_ALL  0x0000000f
@@ -1206,6 +1237,7 @@ int Game::mp_select_mode(char *defSaveFileName)
 		vga_front.lock_buf();
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if( sys.signal_exit_flag == 1 )
@@ -1221,13 +1253,33 @@ int Game::mp_select_mode(char *defSaveFileName)
 				//--------- display interface screen -------//
 
 				image_menu.put_to_buf( &vga_back, "MPG-PG1" );
+				// protection : image_menu.put_to_buf( &vga_back, "MPG-PG1");
+				// ensure the user has the release version (I_MENU.RES)
+				// image_menu2.put_to_buf( &vga_back, "MPG-PG1") get the real one
+				image_menu2.put_to_buf( &vga_back, "MPG-PG1");
 				image_menu.put_back( 234, 15,
 					sub_game_mode == 0 ? (char*)"TOP-NMPG" : (char*)"TOP-LMPG" );
+				int b = 0;
+				for( b = 0; b < BUTTON_NUM; ++b )
+				{
+					int y = buttonY[b]+DESC_TOP_MARGIN;
+					// write service name to back buffer
+					char useBack = vga.use_back_buf;
+					vga.use_back();
+					font_bible.center_put(buttonX[b], y,
+						buttonX[b]+SERVICE_BUTTON_WIDTH-1, y+font_bible.max_font_height-1,
+						_(service_short_desc[b]));
+					y += font_bible.max_font_height;
+					font_san.put_paragraph(buttonX[b]+DESC_MARGIN, y,
+						buttonX[b]+SERVICE_BUTTON_WIDTH-DESC_MARGIN-1, buttonY[b]+SERVICE_BUTTON_HEIGHT-1,
+						_(service_long_desc[b]));
+					if( !useBack )
+						vga.use_front();
+				}
 
 				vga_util.blt_buf(0, 0, vga_back.buf_width()-1, vga_back.buf_height()-1, 0);
 
-				serviceButton[1].paint(1); // show user the forced network service
-
+				serviceButton[service_mode-1].paint(1);
 				if( createButton.enable_flag )
 					createButton.paint();
 				if( joinButton.enable_flag )
@@ -1307,6 +1359,8 @@ int Game::mp_select_mode(char *defSaveFileName)
 	}
 	if( !vga_front.buf_locked )
 		vga_front.lock_buf();
+
+	mp_obj.create_my_player(config.player_name);
 
 	return rc;
 }
@@ -1414,6 +1468,7 @@ int Game::input_box(const char *tell_string, char *buf, int len)
 		input_box.paint();
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if( sys.signal_exit_flag == 1 )
@@ -1481,9 +1536,10 @@ int Game::mp_select_session()
 
 	unsigned long refreshTime;
 	int refreshFlag = SSOPTION_ALL;
+	int pollStatus = MP_POLL_NO_UPDATE;
 	int choice = 0;
-	SessionIdType sessionGuid;
-	memset(&sessionGuid, 0, sizeof(sessionGuid));
+	guuid_t sessionGuid;
+	misc.uuid_clear(sessionGuid);
 
 	// ------- initialized button -----------//
 
@@ -1527,6 +1583,7 @@ int Game::mp_select_session()
 		vga_front.lock_buf();
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if( sys.signal_exit_flag == 1 )
@@ -1565,22 +1622,22 @@ int Game::mp_select_session()
 
 			if( refreshFlag & SSOPTION_POLL_SESSION )
 			{
-				pollTime = misc.get_time();
-				if( !mp_obj.poll_sessions() )
-				{
-					// return fail if poll_sessions fails or cancel the dialogue box
-					box.msg(_("Unable to poll sessions.\n"));
-					choice = 0;
-					break;
-				}
+				int poll;
+				poll = mp_obj.poll_sessions();
+				if( poll != pollStatus )
+					sys.need_redraw_flag = 1;
+				pollStatus = poll;
 
-				// limit the pollTime between 5 sec to 10 sec
-				pollTime = misc.get_time() - pollTime + 5000;
-				if( pollTime > 10000 )
-					pollTime = 10000;
+				// Limit poll after we established polling interaction
+				if( pollStatus == MP_POLL_LOGIN_PENDING )
+					pollTime = 300;
+				else
+					pollTime = 5000;
 
 				refreshTime = misc.get_time();
 
+				if( pollStatus == MP_POLL_UPDATE )
+				{
 				// ------- sort by name ---------//
 				mp_obj.sort_sessions(2);		// sort by session name
 
@@ -1588,7 +1645,7 @@ int Game::mp_select_session()
 				choice = 0;
 				for( s = 1; mp_obj.get_session(s); ++s )
 				{
-					if( sessionGuid == mp_obj.get_session(s)->session_id() )
+					if( misc.uuid_compare(sessionGuid, mp_obj.get_session(s)->session_id()) )
 						choice = s;
 				}
 				if( choice > 0)
@@ -1601,6 +1658,7 @@ int Game::mp_select_session()
 				scrollBar.set(1, s-1, scrollBar.view_recno);
 				refreshFlag |= SSOPTION_SCROLL_BAR;
 				refreshFlag |= SSOPTION_DISP_SESSION;
+				}
 			}
 
 			if( refreshFlag & SSOPTION_DISP_SESSION )
@@ -1630,6 +1688,25 @@ int Game::mp_select_session()
 					}
 				}
 
+				const char *statusMsg = NULL;
+				switch( pollStatus )
+				{
+				case MP_POLL_NO_SOCKET:
+					statusMsg = _("Unable to communicate with the network");
+					break;
+				case MP_POLL_LOGIN_PENDING:
+					statusMsg = _("Trying to connect to the service provider");
+					break;
+				case MP_POLL_LOGIN_FAILED:
+					box.msg(_("Unable to connect to the service provider. Check that your name matches your forum account name and also you are logged in with your web browser."));
+					goto exit_poll;
+				}
+				if( statusMsg )
+				{
+					vga_front.d3_panel_up(60, 65, VGA_WIDTH-60, 100, 2);
+					font_san.put(70, 75, statusMsg, 0, VGA_WIDTH-70);
+				}
+#if 0
 				if (mp_obj.is_update_available() > 0)
 				{
 					String update_message;
@@ -1637,6 +1714,7 @@ int Game::mp_select_session()
 					vga_front.d3_panel_up(60, 65, VGA_WIDTH-60, 100, 2);
 					font_san.put(70, 75, update_message, 0, VGA_WIDTH-70);
 				}
+#endif
 			}
 
 			if( refreshFlag & SSOPTION_SCROLL_BAR )
@@ -1678,7 +1756,7 @@ int Game::mp_select_session()
 					SESSION_DESC_X2, SESSION_BUTTON_Y1 + (b+1)*SESSION_BUTTON_Y_SPACING -1 ) )
 				{
 					choice = s;
-					sessionGuid = mp_obj.get_session(s)->session_id();
+					misc.uuid_copy(sessionGuid, mp_obj.get_session(s)->session_id());
 					refreshFlag |= SSOPTION_DISP_SESSION;
 					joinButton.enable();
 
@@ -1716,6 +1794,7 @@ int Game::mp_select_session()
 
 		vga_front.unlock_buf();
 	}
+exit_poll:
 
 	if( !vga_front.buf_locked )
 		vga_front.lock_buf();
@@ -1728,7 +1807,7 @@ int Game::mp_select_session()
 // The purpose of this function is to provide an event loop and status dialog
 // for establishing a connection with a game host. This will timeout if no
 // connection is seen for a period of time.
-int Game::mp_join_session(int session_id, char *player_name)
+int Game::mp_join_session(int session_id)
 {
 	Button buttonCancel;
 	int width;
@@ -1738,13 +1817,14 @@ int Game::mp_join_session(int session_id, char *player_name)
 	unsigned long wait_time;
 	int sysMsg;
 	bool joinSessionInitiated = false;
+	int pollStatus = MP_POLL_NO_UPDATE;
 
 	session = mp_obj.get_session(session_id);
 	err_when(session == NULL);
  
 	password[0] = 0;
 	if (
-		session->password[0] &&
+		(session->flags & SESSION_PASSWORD) &&
 		!input_box(
 			_("Enter the game's password:"),
 			password,
@@ -1768,7 +1848,7 @@ int Game::mp_join_session(int session_id, char *player_name)
 
 	vga_front.unlock_buf();
 
-	if (!mp_obj.join_session(session, player_name))
+	if (!mp_obj.join_session(session))
 	{
 		goto END;
 	}
@@ -1780,6 +1860,10 @@ int Game::mp_join_session(int session_id, char *player_name)
 		uint32_t from;
 		uint32_t size;
 
+		pollStatus = mp_obj.poll_players();
+		if (pollStatus == MP_POLL_LOGIN_FAILED || pollStatus == MP_POLL_NO_SESSION)
+			break;
+
 		mp_obj.receive(&from, &size, &sysMsg);
 		if (sysMsg)
 		{
@@ -1789,6 +1873,7 @@ int Game::mp_join_session(int session_id, char *player_name)
 		vga_front.lock_buf();
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if (buttonCancel.detect(buttonCancel.str_buf[0], KEY_ESC) ||
@@ -1813,6 +1898,17 @@ END:
 		vga_front.lock_buf();
 
 	box.close();
+
+	if (pollStatus == MP_POLL_LOGIN_FAILED)
+	{
+		box.msg(_("Unable to connect to the service provider. Check that your name matches your forum account name and also you are logged in with your web browser."));
+		return 0;
+	}
+	else if (pollStatus == MP_POLL_NO_SESSION)
+	{
+		box.msg(_("The session you selected no longer exists."));
+		return 0;
+	}
 
 	if (joinSessionInitiated && (sysMsg < 0 || wait_time <= misc.get_time()))
 	{
@@ -1870,6 +1966,7 @@ void Game::mp_close_session()
 		vga_front.lock_buf();
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if (buttonCancel.detect(buttonCancel.str_buf[0], KEY_ESC) ||
@@ -1925,6 +2022,7 @@ int Game::mp_get_leader_board()
 		break;
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 		
 		if( sys.signal_exit_flag == 1 )
@@ -2018,6 +2116,7 @@ int Game::mp_select_option(NewNationPara *nationPara, int *mpPlayerCount)
 	uint32_t recvLen;
 	int sysMsgCount;
 	char *recvPtr;
+	int pollStatus = MP_POLL_NO_UPDATE;
 
 	char raceAssigned[MAX_RACE];		// master copy belongs to host's
 	char colorAssigned[MAX_COLOR_SCHEME];		// master copy belongs to host's
@@ -2435,6 +2534,7 @@ int Game::mp_select_option(NewNationPara *nationPara, int *mpPlayerCount)
 		// ####### end Gilbert 23/10 #######//
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		// Note: sys.signal_exit_flag is detected at the same point as the cancel/abort button
@@ -2666,6 +2766,12 @@ int Game::mp_select_option(NewNationPara *nationPara, int *mpPlayerCount)
 			music.stop();
 
 		// --------- detect remote message -------//
+		pollStatus = mp_obj.poll_players();
+		if (pollStatus == MP_POLL_LOGIN_FAILED)
+		{
+			box.msg(_("Unable to connect to the service provider. Check that your name matches your forum account name and also you are logged in with your web browser."));
+			break;
+		}
 		recvPtr = mp_obj.receive(&from, &recvLen, &sysMsgCount);
 
 		if( sysMsgCount < 0 && from )
@@ -3902,6 +4008,7 @@ int Game::mp_select_load_option(char *fileName)
 	uint32_t recvLen;
 	int sysMsgCount;
 	char *recvPtr;
+	int pollStatus = MP_POLL_NO_UPDATE;
 
 	char raceAssigned[MAX_RACE];		// master copy belongs to host's
 	char colorAssigned[MAX_COLOR_SCHEME];		// master copy belongs to host's
@@ -4328,6 +4435,7 @@ int Game::mp_select_load_option(char *fileName)
 		// ####### begin Gilbert 24/10 ########//
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		// Note: sys.signal_exit_flag is detected at the same point as the cancel/abort button
@@ -4557,6 +4665,12 @@ int Game::mp_select_load_option(char *fileName)
 			music.stop();
 
 		// --------- detect remote message -------//
+		pollStatus = mp_obj.poll_players();
+		if (pollStatus == MP_POLL_LOGIN_FAILED)
+		{
+			box.msg(_("Unable to connect to the service provider. Check that your name matches your forum account name and also you are logged in with your web browser."));
+			break;
+		}
 		recvPtr = mp_obj.receive(&from, &recvLen, &sysMsgCount);
 
 		if( sysMsgCount < 0 && from )
@@ -5303,6 +5417,11 @@ int Game::mp_select_load_option(char *fileName)
 
 		mp_obj.game_starting();
 		retFlag = 1;
+	}
+
+	if( pollStatus == MP_POLL_LOGIN_FAILED )
+	{
+		box.msg(_("Unable to connect to the service provider. Check that your name matches your forum account name and also you are logged in with your web browser."));
 	}
 
 	return retFlag;

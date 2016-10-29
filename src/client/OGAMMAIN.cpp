@@ -21,6 +21,7 @@
 //Filename    : OGAMMAIN.CPP
 //Description : Main Game Object - Main menu
 
+#include <version.h>
 #include <OVGA.h>
 #include <vga_util.h>
 #include <OIMGRES.h>
@@ -221,6 +222,7 @@ void Game::main_menu()
 		//---------- detect buttons -----------//
 
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		optionInfo = main_option_array;
@@ -360,6 +362,10 @@ void Game::disp_version()
 	str += " ";
 	str += GAME_VERSION_STR;
 
+	#ifdef DEV_VERSION
+		str += "-dev";
+	#endif
+
 	#ifdef DEBUG
 		str += " (DEBUG)";
 	#endif
@@ -436,6 +442,7 @@ void Game::single_player_menu()
 	while(1)
 	{
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if( sys.signal_exit_flag == 1 )
@@ -691,6 +698,7 @@ void Game::multi_player_menu(int lobbied, char *game_host)
 	while(1)
 	{
 		sys.yield();
+		vga.flip();
 		mouse.get_event();
 
 		if( sys.signal_exit_flag == 1 )
