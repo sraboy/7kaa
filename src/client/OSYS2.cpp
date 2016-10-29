@@ -254,7 +254,9 @@ void Sys::process()
 
 	LOG_MSG("begin sys.disp_frame");
 	misc.lock_seed();
+#ifndef HEADLESS_SIM
 	disp_frame();
+#endif
 	misc.unlock_seed();
 	LOG_MSG("end sys.disp_frame");
 	LOG_MSG(misc.get_random_seed() );
@@ -1054,7 +1056,7 @@ void Sys::blt_virtual_buf()
 //
 void Sys::disp_frames_per_second()
 {
-	if( !config.show_ai_info )			// only display this in a debug session
+	if( !config.show_ai_info && !sys.disp_fps_flag )// only display this in a debug session
 		return;
 
 	if( game.game_mode == GAME_TUTORIAL )		// don't display in tutorial mode as it overlaps with the tutorial text

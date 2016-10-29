@@ -58,7 +58,8 @@ VgaSDL::VgaSDL()
 
 VgaSDL::~VgaSDL()
 {
-   deinit();
+   if (window != NULL)
+      deinit();
 }
 //-------- End of function VgaSDL::~VgaSDL ----------//
 
@@ -103,6 +104,7 @@ int VgaSDL::init()
    }
 
    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+   SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
    SDL_RenderSetLogicalSize(renderer, VGA_WIDTH, VGA_HEIGHT);
 
    SDL_RendererInfo info;

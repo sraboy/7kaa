@@ -160,6 +160,7 @@ Sys::Sys()
    is_mp_game = 0;
    toggle_full_screen_flag = 0;
    user_pause_flag = 0;
+   disp_fps_flag = 0;
 }
 //----------- End of function Sys::Sys -----------//
 
@@ -238,6 +239,8 @@ void Sys::deinit()
       vga_front.unlock_buf();
 
    //-------------------------------------//
+
+   deinit_directx();
 
    init_flag = 0;
 }
@@ -683,7 +686,9 @@ void Sys::main_loop(int isLoadedGame)
          vga_front.lock_buf();
 
          yield();       // could be improved, give back the control to Windows, so it can do some OS management. Maybe call WaitMessage() here and set up a timer to get messages regularly.
+#ifndef HEADLESS_SIM
          vga.flip();
+#endif
 
          detect();
 
@@ -775,7 +780,9 @@ void Sys::main_loop(int isLoadedGame)
                // second condition (markTime-lastDispFrameTime >= DWORD(1000/config.frame_speed) )
                // may happen in multiplayer, where 'should_next_frame' would pass (what means it's time
                // to process new frame according to config.frame_speed), but 'is_mp_sync' still failed.
+#ifndef HEADLESS_SIM
                disp_frame();
+#endif
                lastDispFrameTime = markTime;
 
 					// ####### patch begin Gilbert 17/11 ######//
@@ -1011,6 +1018,9 @@ void Sys::auto_save()
 //
 void Sys::pause()
 {
+#ifdef HEADLESS_SIM
+   return;
+#endif
    if( config.frame_speed && sys_flag == SYS_RUN )
    {
       set_speed( 0 );
