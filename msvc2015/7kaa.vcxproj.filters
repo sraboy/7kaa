@@ -1608,5 +1608,8 @@
     <ClCompile Include="..\src\imgfun\generic\IR_M.cpp">
       <Filter>Source Files\imgfun</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\misc_uuid.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

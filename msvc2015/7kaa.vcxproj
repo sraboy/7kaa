@@ -41,7 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>$(ProjectDir)..\SDL\lib\x86;$(ProjectDir)..\enet;$(ProjectDir)..\OpenAL\lib;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
-	<LocalDebuggerWorkingDirectory>$(ProjectDir)..\data\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)..\data\</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LibraryPath>$(ProjectDir)..\SDL\lib\x86;$(ProjectDir)..\enet;$(ProjectDir)..\OpenAL\lib;$(LibraryPath)</LibraryPath>
@@ -543,6 +543,7 @@
     <ClCompile Include="..\src\client\OW_SOUND.cpp" />
     <ClCompile Include="..\src\client\OW_WALL.cpp" />
     <ClCompile Include="..\src\common\dbglog.cpp" />
+    <ClCompile Include="..\src\common\misc_uuid.cpp" />
     <ClCompile Include="..\src\common\OCONFIG.cpp" />
     <ClCompile Include="..\src\common\ODATE.cpp" />
     <ClCompile Include="..\src\common\OERROR.cpp" />
