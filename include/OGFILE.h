@@ -32,7 +32,7 @@
 #include <ODYNARR.h>
 #endif
 
-#ifndef __ONATION_Hd
+#ifndef __ONATION_H
 #include <ONATION.h>
 #endif
 
@@ -142,7 +142,7 @@ public:
    int  save_game()    { return menu(1); }
    int  load_game()    { return menu(2); }
 
-   void save_new_game(const char* =NULL); // save a new game immediately without prompting menu
+   int save_new_game(const char* =NULL); // save a new game immediately without prompting menu
 
    int  read_hall_of_fame();
    int  write_hall_of_fame();    // it may be called by group_res.gen_group() in writting default name
