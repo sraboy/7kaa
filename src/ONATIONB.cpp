@@ -60,7 +60,7 @@ const char* NationRelation::relation_status_str_array[5] =
 	N_("Neutral"),
 	// TRANSLATORS: Part of "Duration of Friendly Status"
 	N_("Friendly"),
-	// TRANSLATORS: Par of "Duration of Alliance Status"
+	// TRANSLATORS: Part of "Duration of Alliance Status"
 	N_("Alliance")
 };
 
@@ -102,7 +102,7 @@ NationBase::~NationBase()
 // <int>	  colorSchemeId = color scheme id. of the nation
 // [DWORD] playerId      = an unique player id. (for multiplayer game)
 //
-void NationBase::init(int nationType, int raceId, int colorSchemeId, DWORD playerId)
+void NationBase::init(int nationType, int raceId, int colorSchemeId, uint32_t playerId)
 {
 	//------------- set vars ---------------//
 
@@ -568,9 +568,9 @@ const char* NationBase::king_name(int firstWordOnly)
 	else
 	{
 		if( firstWordOnly )
-			return race_res[race_id]->get_single_name( (WORD) nation_name_id );
+			return race_res[race_id]->get_single_name( static_cast<uint16_t>(nation_name_id) );
 		else
-			return race_res[race_id]->get_name( (WORD) nation_name_id );
+			return race_res[race_id]->get_name( static_cast<uint16_t>(nation_name_id) );
 	}
 }
 //----------- End of function NationBase::king_name ---------//
@@ -1514,24 +1514,30 @@ int NationBase::total_tech_level(int unitClass)
 //								  0 - all races, when a Caravan is killed, 0 will
 //								  be passed, the loyalty of all races will be decreased.
 //
-// <int> isAttacker     - 1 if the nation is the offensive attacker.
-//								  0 if the nation that suffers the atttack.
+// <int> penaltyLevel - positive value if this nation caused the death
+//								  negative value if this nation suffered the death
+//								  any nonzero value means loyalty will be decreased by
+//								  by that absolute amount
 //
-void NationBase::civilian_killed(int civilianRaceId, int isAttacker)
+// Reputation penalties are based on severity coded below.
+// (Attacker,Defender)
+// Killed caravan: (-10,-3)
+// Killed town connected civilian: (-1,-0.3)
+// Killed any other non-combat mobile unit: (-0.3,-0.3)
+void NationBase::civilian_killed(int civilianRaceId, int penaltyLevel)
 {
-	if( isAttacker )
-	{
-		change_all_people_loyalty(-3, civilianRaceId);
+	if( penaltyLevel )
+		change_all_people_loyalty(-abs(penaltyLevel), civilianRaceId);
 
+	if( penaltyLevel > 0 ) // caused the death by attacking a town or caravan
+	{
 		if( civilianRaceId==0 )				// a caravan
 			change_reputation(-(float)10);
 		else
 			change_reputation(-(float)1);
 	}
-	else
+	else // suffered the death or minor low-combat civilian death
 	{
-		change_all_people_loyalty(-1, civilianRaceId);
-
 		if( civilianRaceId==0 )				// a caravan
 			change_reputation(-(float)3);
 		else
@@ -2043,30 +2049,13 @@ char* NationBase::peace_duration_str()
 
 	str = "";
 
-	if( peaceYear > 1 && peaceMonth > 1 )
+	if( peaceYear )
 	{
-		snprintf( str, MAX_STR_LEN+1, _("%d years and %d months"), peaceYear, peaceMonth );
+		str.catf(ngettext("%d year and", "%d years and", peaceYear), peaceYear);
+		str += " ";
 	}
-	else if( peaceYear > 1 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d years and %d month"), peaceYear, peaceMonth );
-	}
-	else if( peaceYear > 0 && peaceMonth > 1 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d year and %d months"), peaceYear, peaceMonth );
-	}
-	else if( peaceYear > 0 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d year and %d month"), peaceYear, peaceMonth );
-	}
-	else if( peaceMonth > 1 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d months"), peaceMonth );
-	}
-	else
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d month"), peaceMonth );
-	}
+
+	str.catf(ngettext("%d month", "%d months", peaceMonth), peaceMonth);
 
 	return str;
 }
@@ -2351,30 +2340,14 @@ char* NationRelation::status_duration_str()
 
 	str = "";
 
-	if( statusYear > 1 && statusMonth > 1 )
+	if( statusYear > 1 )
 	{
-		snprintf( str, MAX_STR_LEN+1, _("%d years and %d months"), statusYear, statusMonth );
+		// TRANSLATORS: Part of "%d year(s) and %d month(s)"
+		str.catf(ngettext("%d year and", "%d years and", statusYear), statusYear);
+		str += " ";
 	}
-	else if( statusYear > 1 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d years and %d month"), statusYear, statusMonth );
-	}
-	else if( statusYear > 0 && statusMonth > 1 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d year and %d months"), statusYear, statusMonth );
-	}
-	else if( statusYear > 0 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d year and %d month"), statusYear, statusMonth );
-	}
-	else if( statusMonth > 1 )
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d months"), statusMonth );
-	}
-	else
-	{
-		snprintf( str, MAX_STR_LEN+1, _("%d month"), statusMonth );
-	}
+
+	str.catf(ngettext("%d month", "%d months", statusMonth), statusMonth);
 
 	return str;
 }

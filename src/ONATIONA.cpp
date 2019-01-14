@@ -110,7 +110,7 @@ void NationArray::deinit()
 //
 // return : <int> nationRecno = the recno. of the newly added nation
 //
-int NationArray::new_nation(int nationType, int raceId, int colorSchemeId, unsigned long dpPlayerId)
+int NationArray::new_nation(int nationType, int raceId, int colorSchemeId, uint32_t dpPlayerId)
 {
 	err_when( info.game_date < last_del_nation_date + NEW_NATION_INTERVAL_DAYS );
 
@@ -172,10 +172,13 @@ int NationArray::new_nation(NewNationPara& nationPara)
 	Nation* nationPtr   = nation_array[nationRecno];
 
 	err_when( nationRecno != nationPara.nation_recno );
-	err_when( !remote.is_enable() );
+	err_when( !remote.is_enable() && !remote.is_replay() );
 
-	char nationType = 
-		nationPara.dp_player_id == remote.self_player_id() ? NATION_OWN : NATION_REMOTE;
+	char nationType;
+	if( remote.is_enable() )
+		nationType = nationPara.dp_player_id == remote.self_player_id() ? NATION_OWN : NATION_REMOTE;
+	else // replay mode, force all to be remote
+		nationType = NATION_REMOTE;
 
 	if( nationType == NATION_OWN )
 	{

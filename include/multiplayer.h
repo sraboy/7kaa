@@ -26,11 +26,13 @@
 #define __MULTIPLAYER_H
 
 #include <MPTYPES.h>
+#include <session_desc.h>
 #include <player_desc.h>
 #include <ODYNARRB.h>
 #include <stdint.h>
 #include <enet/enet.h>
 #include <OMISC.h>
+
 
 #define MP_SERVICE_PROVIDER_NAME_LEN 64
 #define MP_SESSION_NAME_LEN 64
@@ -60,6 +62,8 @@ enum
 	MPMSG_REQ_SESSION_ADDR,
 	MPMSG_SESSION_ADDR,
 	MPMSG_PING,
+	MPMSG_REQ_HOST_NAT_PUNCH,
+	MPMSG_HOST_NAT_PUNCH,
 };
 
 enum
@@ -124,32 +128,17 @@ struct MpMsgSessionAddr {
 struct MpMsgPing {
 	uint32_t msg_id;
 };
-
-#define SESSION_HOSTING         1
-#define SESSION_FULL            2
-#define SESSION_PASSWORD        4
-#define SESSION_LOADING_SAVE    8
-#define SESSION_PREGAME         16
-
-struct SessionDesc
-{
-	char session_name[MP_FRIENDLY_NAME_LEN+1];
-	char password[MP_FRIENDLY_NAME_LEN+1];
-	guuid_t id;
-	uint32_t flags;
-	int max_players;
-	int player_count;
-	ENetAddress address;
-
-	SessionDesc();
-	SessionDesc(const SessionDesc &);
-	SessionDesc& operator= (const SessionDesc &);
-	SessionDesc(const char *name, const char *pass, ENetAddress *address);
-	SessionDesc(MpMsgUserSessionStatus *m, ENetAddress *address);
-	SessionDesc(MpMsgSession *m);
-
-	char *name_str() { return session_name; };
-	guuid_t &session_id() { return id; }
+struct MpMsgReqHostNatPunch {
+	uint32_t msg_id;
+	guuid_t login_id;
+	guuid_t session_id;
+	char session_password[MP_FRIENDLY_NAME_LEN];
+};
+struct MpMsgHostNatPunch {
+	uint32_t msg_id;
+	uint32_t host;
+	uint16_t port;
+	uint16_t reserved0;
 };
 
 
@@ -165,7 +154,7 @@ private:
 	SessionDesc       joined_session;
 
 	uint32_t          my_player_id;
-	PlayerDesc        *my_player;
+	PlayerDesc        my_player;
 
 	PlayerDesc        *player_pool[MAX_NATION];
 	PlayerDesc        *pending_pool[MAX_NATION];
@@ -244,6 +233,10 @@ private:
 	void send_poll_sessions();
 	void send_req_session_id();
 	void send_req_session_addr();
+	void send_ping(ENetSocket s, ENetAddress *a);
+	void send_req_host_nat_punch();
+	void send_service_ping();
+	void do_host_nat_punch(MpMsgHostNatPunch *in);
 
 	void update_player_pool();
 	uint32_t get_avail_player_id();

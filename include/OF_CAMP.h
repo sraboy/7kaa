@@ -46,6 +46,7 @@ struct DefenseUnit
 
 //------- Define class FirmCamp --------//
 
+struct FirmCampCrc;
 class Town;
 class Unit;
 
@@ -123,8 +124,9 @@ public:
 	int 		new_commander_leadership(int newRaceId, int newSkillLevel);
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(FirmCampCrc *c);
 
 private:
 	void 		reset_unit_home_camp(int firmRecno);
@@ -135,7 +137,6 @@ private:
 	void		train_unit();
 	void 		recover_hit_point();
 	void 		pay_weapon_expense();
-	void 		sort_soldier();
 
 	void 		update_influence();
 	void 		validate_patrol_unit();

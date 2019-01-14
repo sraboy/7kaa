@@ -204,7 +204,7 @@ void FirmMine::put_info(int refreshFlag)
 			button_vacate_firm.set_help_code("MOBILIZE");
 		}
 
-		if (worker_count)
+		if( have_own_workers() )
 			button_vacate_firm.enable();
 		else
 			button_vacate_firm.disable();
@@ -279,7 +279,7 @@ void FirmMine::disp_mine_info(int dispY1, int refreshFlag)
 	String str;
 
 	// TRANSLATORS: Mining <Clay/Copper/Iron>
-	snprintf( str, MAX_STR_LEN+1, _("Mining %s"), raw_res[raw_id]->name );
+	snprintf( str, MAX_STR_LEN+1, _("Mining %s"), _(raw_res[raw_id]->name) );
 
 	font_san.disp( x+20, y, str, INFO_X2-2);
 	y+=16;

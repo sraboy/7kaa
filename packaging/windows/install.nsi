@@ -1,16 +1,21 @@
-; install.nsi (v0.1)
+; install.nsi
 ; Written by Thomas Atkinson 12/4/2012
 ; Licensed under the gpl
+;
+; Updated by Jesse Allen for 2.14.xx and 2.15.xx
+;
 ; Requires NSIS to compile
 ;
-; Installs 7kaa in a directory the user selects and creates an uninstaller
+; Install 7kaa in a directory, copy this into the directory, and use NSIS to
+; create the installer. See build.sh for a quick rundown on how to use "make
+; install". A few other files might need to be brought in from elsewhere.
 
 ;--------------------------------
 ; Set current working directory
 
 ; You can achieve this with /NOCD, but this might get rolled into Makefile
 ; and this makes more sense.
-!cd ..\..
+;!cd ..\..\dest
 
 ;--------------------------------
 ;Include Modern UI
@@ -99,19 +104,21 @@ Section "7kaa (required)" 7kaareq
   Rename "$INSTDIR\README" "$INSTDIR\README.txt"
   File ".\COPYING"
   Rename "$INSTDIR\COPYING" "$INSTDIR\COPYING.txt"
-  File ".\COPYING.uuid"
-  Rename "$INSTDIR\COPYING.uuid" "$INSTDIR\COPYING-uuid.txt"
-  File ".\doc\7kaa-hotkeys-2.14.5.png"
-  File /r ".\data\encyc"
-  File /r ".\data\encyc2"
-  File /r ".\data\image"
-  File /r ".\data\resource"
-  File /r ".\data\scenari2"
-  File /r ".\data\scenario"
-  File /r ".\data\sound"
-  File /r ".\data\sprite"
-  File /r ".\data\tutorial"
-  File .\src\7kaa.exe
+  File ".\7kaa-hotkeys-2.14.5.png"
+  File ".\7kaa-manual.pdf"
+  File /r ".\ENCYC"
+  File /r ".\ENCYC2"
+  File /r ".\IMAGE"
+  File /r ".\locale"
+  File /r ".\RESOURCE"
+  File /r ".\SCENARI2"
+  File /r ".\SCENARIO"
+  File /r ".\SOUND"
+  File /r ".\SPRITE"
+  File /r ".\TUTORIAL"
+  File .\7kaa.exe
+  File ".\SDL2.dll"
+  File ".\libcurl-4.dll"
   
   ;Reset Install path
   ;SetOutPath "$INSTDIR"
@@ -134,7 +141,7 @@ Section "Music" music
   SetOutPath "$INSTDIR"
   File ".\README-music.txt"
   File ".\COPYING-music.txt"
-  File /r ".\data\music"
+  File /r ".\MUSIC"
 
 SectionEnd
 
@@ -142,13 +149,6 @@ Section "OpenAL" openal
 
   SetOutPath "$INSTDIR"
   File ".\OpenAL32.dll"
-
-SectionEnd
-
-Section "SDL" sdl
-
-  SetOutPath "$INSTDIR"
-  File ".\SDL2.dll"
 
 SectionEnd
 
@@ -162,6 +162,7 @@ Section "Start Menu Shortcuts" startshort
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Seven Kingdoms AA.lnk" "$INSTDIR\7kaa.exe"
   CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Hotkeys.lnk" "$INSTDIR\7kaa-hotkeys-2.14.5.png"
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Manual.lnk" "$INSTDIR\7kaa-manual.pdf"
   
   !insertmacro MUI_STARTMENU_WRITE_END
   
@@ -174,8 +175,7 @@ SectionEnd
   LangString secreq ${LANG_ENGLISH} "Files required for 7kaa to run"
   LangString secmusic ${LANG_ENGLISH} "Music files for 7kaa"
   LangString secshort ${LANG_ENGLISH} "Start menu shortcuts"
-  LangString secopenal ${LANG_ENGLISH} "OpenAL-soft shared library (recommended if not provided by your hardware driver)"
-  LangString secsdl ${LANG_ENGLISH} "SDL shared library (recommended)"
+  LangString secopenal ${LANG_ENGLISH} "OpenAL-soft shared library (recommended if not provided by your sound driver)"
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
@@ -183,7 +183,6 @@ SectionEnd
       !insertmacro MUI_DESCRIPTION_TEXT ${music} $(secmusic)
       !insertmacro MUI_DESCRIPTION_TEXT ${startshort} $(secshort)
     !insertmacro MUI_DESCRIPTION_TEXT ${openal} $(secopenal)
-    !insertmacro MUI_DESCRIPTION_TEXT ${sdl} $(secsdl)
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -201,24 +200,27 @@ Section "Uninstall"
   DeleteRegKey HKCU "SOFTWARE\7kaa"
 
   ; Remove the program files
-  RMDir /r "$INSTDIR\encyc"
-  RMDir /r "$INSTDIR\encyc2"
-  RMDir /r "$INSTDIR\image"
-  RMDir /r "$INSTDIR\resource"
-  RMDir /r "$INSTDIR\scenari2"
-  RMDir /r "$INSTDIR\scenario"
-  RMDir /r "$INSTDIR\sound"
-  RMDir /r "$INSTDIR\sprite"
-  RMDir /r "$INSTDIR\tutorial"
-  RMDir /r "$INSTDIR\music"
+  RMDir /r "$INSTDIR\ENCYC"
+  RMDir /r "$INSTDIR\ENCYC2"
+  RMDir /r "$INSTDIR\IMAGE"
+  RMDir /r "$INSTDIR\locale"
+  RMDir /r "$INSTDIR\RESOURCE"
+  RMDir /r "$INSTDIR\SCENARI2"
+  RMDir /r "$INSTDIR\SCENARIO"
+  RMDir /r "$INSTDIR\SOUND"
+  RMDir /r "$INSTDIR\SPRITE"
+  RMDir /r "$INSTDIR\TUTORIAL"
+  RMDir /r "$INSTDIR\MUSIC"
   Delete "$INSTDIR\7kaa.exe"
   Delete "$INSTDIR\COPYING.txt"
   Delete "$INSTDIR\README.txt"
   Delete "$INSTDIR\7kaa-hotkeys-2.14.5.png"
+  Delete "$INSTDIR\7kaa-manual.pdf"
   Delete "$INSTDIR\COPYING-music.txt"
   Delete "$INSTDIR\README-music.txt"
   Delete "$INSTDIR\OpenAL32.dll"
   Delete "$INSTDIR\SDL2.dll"
+  Delete "$INSTDIR\libcurl-4.dll"
   Delete "$INSTDIR\Uninstall.exe"
 
   ; Remove shortcuts

@@ -27,6 +27,8 @@
 
 #include <OBULLET.h>
 
+struct BulletFlameCrc;
+
 // cur_action of BulletFlame is SPRITE_STOP before die
 
 #pragma pack(1)
@@ -40,8 +42,9 @@ public:
 	char	display_layer();
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(BulletFlameCrc *c);
 };
 #pragma pack()
 

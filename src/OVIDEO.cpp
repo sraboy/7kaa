@@ -87,7 +87,7 @@ void Video::play(char* aviFileName, DWORD waitTime)
 
 	//-------- wait still after playing the movie ------//
 
-	DWORD curTime = misc.get_time();
+	unsigned long curTime = misc.get_time();
 
 	while( misc.get_time() < curTime+waitTime );
 
@@ -349,7 +349,7 @@ void Video::play_until_end( char *fileName, HINSTANCE hInstance, DWORD t)
 			break;
 		}
 		DWORD Result = MsgWaitForMultipleObjects( cObjects, ahObjects,
-			FALSE, INFINITE, QS_ALLINPUT);
+			0, INFINITE, QS_ALLINPUT);
 		
 		// Have we received an event notification
 		if( Result >= WAIT_OBJECT_0 && Result < (WAIT_OBJECT_0 + cObjects) )

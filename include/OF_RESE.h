@@ -28,6 +28,7 @@
 #include <OFIRM.h>
 #endif
 
+struct FirmResearchCrc;
 
 //------- Define class FirmResearch --------//
 
@@ -68,8 +69,9 @@ public:
 	virtual FirmResearch* cast_to_FirmResearch() { return this; };
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(FirmResearchCrc *c);
 
 private:
 	void	disp_research_info(int dispY1, int refreshFlag);

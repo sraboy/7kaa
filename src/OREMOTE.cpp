@@ -21,10 +21,6 @@
 //Filename    : OREMOTE.CPP
 //Description : Object Remote
 
-//#include <windows.h>
-//#include <windowsx.h>
-//#include <mmsystem.h>
-
 #include <ALL.h>
 #include <OBOX.h>
 #include <OVGA.h>
@@ -38,14 +34,8 @@
 #include <OREMOTE.h>
 #include <multiplayer.h>
 #include <OERRCTRL.h>
-
-//---------- Define static variables ----------//
-
-static int	connection_failed = 0;		// connect_game_disconnect_handler() will set connection_failed to 0
-
-//---------- Define static functions ----------//
-
-static void connect_game_disconnect_handler(DWORD playerId);
+#include <ReplayFile.h>
+#include <FilePath.h>
 
 //--------- Begin of function Remote::Remote ----------//
 
@@ -61,7 +51,7 @@ Remote::Remote()
 	common_msg_buf    = mem_add( COMMON_MSG_BUF_SIZE );
 
 	mp_ptr				= NULL;
-	connectivity_mode = 0;
+	connectivity_mode = MODE_DISABLED;
 	//	handle_vga_lock   = 1;
 	handle_vga_lock   = 0;			// lock vga front in MulitPlayerDP
 	process_queue_flag = 0;
@@ -95,13 +85,13 @@ void Remote::init(MultiPlayer *mp)
 	if( connectivity_mode )
 		deinit();
 
-	connectivity_mode = 1;
+	connectivity_mode = MODE_MP_ENABLED;
 	poll_msg_flag = 0;
 	mp_ptr = mp;
 
 	// ###### patch begin Gilbert 22/1 #######//
-	sync_test_level = (misc.is_file_exist("SYNC1.SYS") ? 1 : 0)
-		| (misc.is_file_exist("SYNC2.SYS") ? 2 : 0);
+	sync_test_level = (misc.is_file_exist("NOSYNC1.SYS") ? 0 : 1)
+		| (misc.is_file_exist("NOSYNC2.SYS") ? 0 : 2);
 		// 0=disable, bit0= random seed, bit1=crc
 	// ###### patch end Gilbert 22/1 #######//
 
@@ -112,17 +102,49 @@ void Remote::init(MultiPlayer *mp)
 //--------- End of function Remote::init ----------//
 
 
+//--------- Begin of function Remote::init_replay_load ----------//
+// Can be called independently.
+int Remote::init_replay_load(char *full_path, NewNationPara *mpGame, int *playerCount)
+{
+	if( connectivity_mode )
+		deinit();
+
+	if (!replay.open_read(full_path, mpGame, playerCount))
+		return 0;
+
+	remote.connectivity_mode = Remote::MODE_REPLAY;
+
+	return 1;
+}
+//--------- End of function Remote::init_replay_load ----------//
+
+
+//--------- Begin of function Remote::init_replay_save ----------//
+// Call this after init(). Uses a default filename.
+void Remote::init_replay_save(NewNationPara *mpGame, int playerCount)
+{
+	err_when( connectivity_mode != MODE_MP_ENABLED );
+
+	FilePath full_path(sys.dir_config);
+	full_path += "NONAME.RPL";
+	if( !full_path.error_flag )
+		replay.open_write(full_path, mpGame, playerCount);
+}
+//--------- End of function Remote::init_replay_save ----------//
+
+
 //--------- Begin of function Remote::deinit ----------//
 
 void Remote::deinit()
 {
 	if( connectivity_mode )
 	{
-		connectivity_mode = 0;
+		connectivity_mode = MODE_DISABLED;
 	}
 	// ###### patch begin Gilbert 22/1 #######//
 	sync_test_level = 0;			// 0=disable, bit0= random seed, bit1=crc
 	// ###### patch end Gilbert 22/1 #######//
+	replay.close();
 }
 //--------- End of function Remote::deinit ----------//
 
@@ -133,7 +155,7 @@ int Remote::create_game()
 {
 	//--------- initialize session parameters ---------//
 
-	is_host = TRUE;
+	is_host = 1;
 
 	return 1;
 }
@@ -144,7 +166,7 @@ int Remote::create_game()
 //
 int Remote::connect_game()
 {
-	is_host = FALSE;
+	is_host = 0;
 	return 1;
 }
 //--------- End of function Remote::connect_game ---------//
@@ -154,16 +176,35 @@ int Remote::connect_game()
 //
 int Remote::is_enable()
 {
-	return connectivity_mode;
+	return connectivity_mode == MODE_MP_ENABLED;
 }
 //--------- End of function Remote::is_enable ----------//
+
+
+//-------- Begin of function Remote::is_replay ---------//
+//
+int Remote::is_replay()
+{
+	return connectivity_mode == MODE_REPLAY;
+}
+//--------- End of function Remote::is_replay ----------//
+
+
+//-------- Begin of function Remote::is_replay_end ---------//
+//
+int Remote::is_replay_end()
+{
+	return connectivity_mode == MODE_REPLAY_END;
+}
+//--------- End of function Remote::is_replay_end ----------//
+
 
 /*
 //-------- Begin of function Remote::can_start_game ---------//
 //
 int Remote::can_start_game()
 {
-	err_when(!connectivity_mode);
+	err_when(connectivity_mode != MODE_MP_ENABLED);
 
 	return wsock_ptr->can_start_game();
 }
@@ -174,7 +215,7 @@ int Remote::can_start_game()
 //
 int Remote::number_of_opponent()
 {
-	err_when(!connectivity_mode);
+	err_when(connectivity_mode != MODE_MP_ENABLED);
 
 	//return wsock_ptr->number_of_player;
 	return mp_ptr->get_player_count()-1;
@@ -184,9 +225,9 @@ int Remote::number_of_opponent()
 
 //-------- Begin of function Remote::self_player_id ---------//
 //
-DWORD Remote::self_player_id()
+PID_TYPE Remote::self_player_id()
 {
-	err_when(!connectivity_mode);
+	err_when(connectivity_mode != MODE_MP_ENABLED);
 
 	// return wsock_ptr->self_player_id;
 	return mp_ptr->get_my_player_id();
@@ -198,7 +239,7 @@ DWORD Remote::self_player_id()
 //
 void Remote::set_disconnect_handler(DisconnectFP disconnectFP)
 {
-	err_when(!connectivity_mode);
+	err_when(connectivity_mode != MODE_MP_ENABLED);
 
 	wsock_ptr->set_disconnect_handler(disconnectFP);
 }
@@ -210,23 +251,11 @@ void Remote::set_disconnect_handler(DisconnectFP disconnectFP)
 //
 void Remote::start_game()
 {
-	err_when(!connectivity_mode);
+	err_when(connectivity_mode != MODE_MP_ENABLED);
 
 	// wsock_ptr->start_game();
 }
 //--------- End of function Remote::start_game ----------//
-
-
-//----- Begin of function connect_game_disconnect_handler -----//
-//
-// Disconnection handler for Remote::connect_game()
-//
-static void connect_game_disconnect_handler(DWORD playerId)
-{
-	connection_failed = 1;
-}
-//------ End of function connect_game_disconnect_handler ------//
-
 
 
 //-------- Begin of function Remote::reset_process_frame_delay ---------//
@@ -300,7 +329,7 @@ int Remote::get_alternating_send()
 
 
 //-------- Begin of function Remote::has_send_frame ---------//
-int Remote::has_send_frame(int nationRecno, DWORD frameCount)
+int Remote::has_send_frame(int nationRecno, uint32_t frameCount)
 {
 	return ((frameCount + nationRecno) % alternating_send_rate) == 0;
 }
@@ -310,9 +339,9 @@ int Remote::has_send_frame(int nationRecno, DWORD frameCount)
 //-------- Begin of function Remote::next_send_frame ---------//
 // if has_send_frame is true, return frameCount
 // otherwise return the next frame which has_send_frame return true
-DWORD Remote::next_send_frame(int nationRecno, DWORD frameCount)
+uint32_t Remote::next_send_frame(int nationRecno, uint32_t frameCount)
 {
-	DWORD remainder = ((frameCount + nationRecno) % alternating_send_rate);
+	uint32_t remainder = ((frameCount + nationRecno) % alternating_send_rate);
 	if(remainder == 0)
 		return frameCount;
 	else

@@ -1889,7 +1889,7 @@ void Town::think_rebel()
 	if( !leaderUnitRecno )
 		return;
 
-	DWORD curGroupId = unit_array.cur_group_id++;
+	uint32_t curGroupId = unit_array.cur_group_id++;
 	Unit *unitPtr = unit_array[leaderUnitRecno];
 	unitPtr->unit_group_id = curGroupId;
 
@@ -2993,10 +2993,10 @@ void Town::kill_town_people(int raceId, int attackerNationRecno)
 	//---- killing civilian people decreases loyalty -----//
 
 	if( nation_recno && attackerNationRecno )					// your people's loyalty decreases because you cannot protect them.
-		nation_array[nation_recno]->civilian_killed(raceId, 0);		// but only when your units are killed by enemies, neutral disasters are not counted
+		nation_array[nation_recno]->civilian_killed(raceId, -1);		// but only when your units are killed by enemies, neutral disasters are not counted
 
 	if( attackerNationRecno )        //	the attacker's people's loyalty decreases because of the killing actions.
-		nation_array[attackerNationRecno]->civilian_killed(raceId, 1);		// the nation is the attacking one
+		nation_array[attackerNationRecno]->civilian_killed(raceId, 2);		// the nation is the attacking one
 
 	// -------- sound effect ---------//
 

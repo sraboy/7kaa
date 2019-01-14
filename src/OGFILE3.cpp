@@ -39,6 +39,7 @@
 #include <OTORNADO.h>
 #include <OTOWN.h>
 #include <OU_MARI.h>
+#include <OSaveGameArray.h>
 #include <dbglog.h>
 #include <file_io_visitor.h>
 #include <file_reader.h>
@@ -78,10 +79,11 @@ int UnitArray::write_file(File* filePtr)
 	filePtr->file_put_short(unit_search_tries_flag);
 
 	filePtr->file_put_short(visible_unit_count);
-	filePtr->file_put_short(mp_first_frame_to_select_caravan);
-	filePtr->file_put_short(mp_first_frame_to_select_ship);
-	filePtr->file_put_short(mp_pre_selected_caravan_recno);
-	filePtr->file_put_short(mp_pre_selected_ship_recno);
+	// unused short*4
+	filePtr->file_put_short(0);
+	filePtr->file_put_short(0);
+	filePtr->file_put_short(0);
+	filePtr->file_put_short(0);
 
 	for( i=1; i<=size() ; i++ )
    {
@@ -140,10 +142,11 @@ int UnitArray::read_file(File* filePtr)
 	unit_search_tries_flag = (char) filePtr->file_get_short();
 
    visible_unit_count					= filePtr->file_get_short();
-	mp_first_frame_to_select_caravan = (char) filePtr->file_get_short();
-	mp_first_frame_to_select_ship		= (char) filePtr->file_get_short();
-	mp_pre_selected_caravan_recno		= filePtr->file_get_short();
-	mp_pre_selected_ship_recno			= filePtr->file_get_short();
+	// unused short*4
+	filePtr->file_get_short();
+	filePtr->file_get_short();
+	filePtr->file_get_short();
+	filePtr->file_get_short();
 
    for( i=1 ; i<=unitCount ; i++ )
    {
@@ -974,7 +977,7 @@ int FirmArray::read_file(File* filePtr)
 
          //---- read data in base class -----//
 
-			if(!game_file_array.same_version && firmPtr->firm_id > FIRM_BASE)
+			if(!GameFile::read_file_same_version && firmPtr->firm_id > FIRM_BASE)
 				firmPtr->firm_build_id += MAX_RACE - VERSION_1_MAX_RACE;
 
          //--------- read worker_array ---------//
@@ -985,6 +988,8 @@ int FirmArray::read_file(File* filePtr)
 
             if( !filePtr->file_read( firmPtr->worker_array, MAX_WORKER*sizeof(Worker) ) )
                return 0;
+
+            firmPtr->sort_worker(); // if this one selected, refresh interface
          }
 
          //----- read data in derived class -----//
@@ -1158,7 +1163,7 @@ int TownArray::read_file(File* filePtr)
 	int townCount = filePtr->file_get_short();  // get no. of towns from file
 	selected_recno = filePtr->file_get_short();
 
-	if(!game_file_array.same_version)
+	if(!GameFile::read_file_same_version)
 	{
 		memset(race_wander_pop_array, 0, sizeof(race_wander_pop_array));
 		filePtr->file_read( race_wander_pop_array, sizeof(race_wander_pop_array[0])*VERSION_1_MAX_RACE );
@@ -1180,7 +1185,7 @@ int TownArray::read_file(File* filePtr)
 		{
 			townPtr = town_array.create_town();
 
-			if(!game_file_array.same_version)
+			if(!GameFile::read_file_same_version)
 			{
 				Version_1_Town *oldTown = (Version_1_Town*) mem_add(sizeof(Version_1_Town));
 				if(!filePtr->file_read(oldTown, sizeof(Version_1_Town)))
@@ -1270,7 +1275,7 @@ static void visit_nation_array(Visitor *v, NationArray *na)
 
 	for (int n = 0; n < MAX_NATION; n++)
 		visit_array<int8_t>(v, na->human_name_array[n],
-								  NationArray::HUMAN_NAME_LEN+1);
+								  HUMAN_NAME_LEN+1);
 }
 
 enum { NATION_ARRAY_RECORD_SIZE = 288 };
@@ -1368,7 +1373,7 @@ static void visit_version_1_nation_array(Visitor *v, Version_1_NationArray *na)
 
 	for (int n = 0; n < MAX_NATION; n++)
 		visit_array<int8_t>(v, na->human_name_array[n],
-								  NationArray::HUMAN_NAME_LEN+1);
+								  HUMAN_NAME_LEN+1);
 }
 
 enum { VERSION_1_NATION_ARRAY_RECORD_SIZE = 282 };
@@ -1378,7 +1383,7 @@ enum { VERSION_1_NATION_ARRAY_RECORD_SIZE = 282 };
 int NationArray::read_file(File* filePtr)
 {
    //------ read info in NationArray ------//
-	if(!game_file_array.same_version)
+	if(!GameFile::read_file_same_version)
 	{
 		Version_1_NationArray *oldNationArrayPtr = (Version_1_NationArray*) mem_add(sizeof(Version_1_NationArray));
 		if (!read_with_record_size(filePtr, oldNationArrayPtr,
@@ -1581,7 +1586,7 @@ static void visit_version_1_nation(Visitor *v, Version_1_Nation *v1n)
 	visit<int16_t>(v, &v1n->largest_town_recno);
 	visit<int16_t>(v, &v1n->largest_town_pop);
 	visit_array<int16_t>(v, v1n->raw_count_array, MAX_RAW);
-	visit_array<int16_t>(v, v1n->last_unit_name_id_array,
+	visit_array<uint16_t>(v, v1n->last_unit_name_id_array,
 								VERSION_1_MAX_UNIT_TYPE);
 	visit<int32_t>(v, &v1n->population_rating);
 	visit<int32_t>(v, &v1n->military_rating);
@@ -1784,7 +1789,7 @@ static void visit_nation(Visitor *v, Nation *nat)
 	visit<int16_t>(v, &nat->largest_town_recno);
 	visit<int16_t>(v, &nat->largest_town_pop);
 	visit_array<int16_t>(v, nat->raw_count_array, MAX_RAW);
-	visit_array<int16_t>(v, nat->last_unit_name_id_array, MAX_UNIT_TYPE);
+	visit_array<uint16_t>(v, nat->last_unit_name_id_array, MAX_UNIT_TYPE);
 	visit<int32_t>(v, &nat->population_rating);
 	visit<int32_t>(v, &nat->military_rating);
 	visit<int32_t>(v, &nat->economic_rating);
@@ -1955,7 +1960,7 @@ static bool read_nation(File *file, Nation *nat)
 //
 int Nation::read_file(File* filePtr)
 {
-	if(!game_file_array.same_version)
+	if(!GameFile::read_file_same_version)
 	{
 		Version_1_Nation *oldNationPtr = (Version_1_Nation*) mem_add(sizeof(Version_1_Nation));
 

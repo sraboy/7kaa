@@ -42,7 +42,9 @@
 #include <OGAME.h>
 #include <ONEWS.h>
 #include <OGAMESET.h>
-#include <OGFILE.h>
+#include <OSaveGameArray.h>
+#include <OSaveGameProvider.h>
+#include <OGAMHALL.h>
 #include <OINFO.h>
 #include <OVBROWSE.h>
 #include <OIMGRES.h>
@@ -85,9 +87,12 @@
 #include <OOPTMENU.h>
 #include <OINGMENU.h>
 // ##### end Gilbert 23/10 ######//
+#include <LocaleRes.h>
+#include <CmdLine.h>
+#include <FilePath.h>
 
 #include <dbglog.h>
-#ifndef NO_WINDOWS
+#ifdef USE_WINDOWS
 #include <direct.h>
 #define chdir _chdir
 #else
@@ -115,7 +120,6 @@ static int  get_mouse_loc_in_zoom_map(int &x, int &y);
 static unsigned long last_frame_time=0, last_resend_time=0;
 static char          remote_send_success_flag=1;
 static char          scenario_cheat_flag=0;
-
 
 static std::string get_bundle_resources_path(void)
 {
@@ -200,19 +204,19 @@ int Sys::init()
 
    // set game directory paths and game version
    if ( !set_game_dir() )
-      return FALSE;
+      return 0;
 
    //------- initialize more stuff ---------//
 
    if( !init_directx() )
-      return FALSE;
+      return 0;
 
    if( !init_objects() )   // initialize system objects which do not change from games to games.
-      return FALSE;
+      return 0;
 
    init_flag = 1;
 
-   return TRUE;
+   return 1;
 }
 //------------ End of function Sys::init ----------//
 
@@ -255,22 +259,56 @@ int Sys::init_directx()
    //-------- initialize DirectDraw --------//
 
    DEBUG_LOG("Attempt vga.init()");
-   if( !vga.init() )
-      return FALSE;
+   if( cmd_line.enable_if && !vga.init() )
+      return 0;
    DEBUG_LOG("vga.init() ok");
+
+   DEBUG_LOG("Attempt vga.load_pal()");
+   vga.load_pal(DIR_RES"PAL_STD.RES");
+   DEBUG_LOG("vga.load_pal() finish");
+
+   if( sys.debug_session )                // if we are currently in a debug session, don't lock the front buffer otherwise the system will hang up
+   {
+      DEBUG_LOG("Attempt vga_front.init_back()");
+      vga_front.init(1);
+      DEBUG_LOG("Attempt vga_true_front.init_front()");
+      vga_true_front.init(1);
+      DEBUG_LOG("Attempt vga.activate_pal()");
+      vga.activate_pal(&vga_true_front);
+      DEBUG_LOG("vga.activate_pal() finish");
+   }
+   else
+   {
+      vga_front.init(1);
+      vga.activate_pal(&vga_front);
+   }
+
+   DEBUG_LOG("Attempt vga_back.init_back()");
+   vga_back.init(0);
+   DEBUG_LOG("vga_back.init_back() finish");
+
+   DEBUG_LOG("Attempt vga_front.lock_buf()");
+   vga_front.lock_buf();
+   DEBUG_LOG("vga_front.lock_buf() finish");
+
+   DEBUG_LOG("Attempt vga_back.lock_buf()");
+   vga_back.lock_buf();
+   DEBUG_LOG("vga_back.lock_buf() finish");
+
 #if !defined(DEBUG) && !defined(_DEBUG)
-   vga.set_full_screen_mode(1);
+   vga.set_full_screen_mode(cmd_line.full_screen_mode);
 #endif
 
    //---------- Initialize Audio ----------//
 
    DEBUG_LOG("Attempt audio.init()");
-   audio.init();
+   if( cmd_line.enable_if )
+      audio.init();
    DEBUG_LOG(audio.wav_init_flag);
    music.init();
    se_ctrl.init();
 
-   return TRUE;
+   return 1;
 }
 //-------- End of function Sys::init_directx --------//
 
@@ -287,6 +325,7 @@ void Sys::deinit_directx()
 
    //------------------------------//
 
+   vga.save_status_report();
    DEBUG_LOG("Attempt vga.deinit()");
    vga.deinit();
    DEBUG_LOG("vga.deinit() finish");
@@ -310,20 +349,54 @@ int Sys::init_objects()
 
    //------- init resource class ----------//
 
-	#if( defined(GERMAN) || defined(FRENCH) || defined(SPANISH) )
-		font_std.init("SAN", 1);
-		font_hall.init("HALL", 1);
-	#else
-		font_std.init("STD", 2);
-	#endif
+   if( locale_res.fontset[0] )
+   {
+      String font;
 
-	font_san.init("SAN", 0);      // 0-zero inter-character space
-	font_mid.init("MID");
-	font_small.init("SMAL");
-	font_news.init("NEWS");
-	font_hitpoint.init("HITP");
-	font_bible.init("CASA", 1, 3);
-	font_bard.init("CASA", 0);
+      font = "STD_";
+      font += locale_res.fontset;
+      font_std.init(font, 1);
+
+      font = "SAN_";
+      font += locale_res.fontset;
+      font_san.init(font, 0);
+
+      font = "MID_";
+      font += locale_res.fontset;
+      font_mid.init(font);
+
+      font = "SMAL_";
+      font += locale_res.fontset;
+      font_small.init(font);
+
+      font = "NEWS_";
+      font += locale_res.fontset;
+      font_news.init(font);
+
+      font = "CASA_";
+      font += locale_res.fontset;
+      font_bible.init(font, 1, 1);
+      font_bard.init(font, 0);
+   }
+   else
+   {
+      // fall back to original fonts
+      font_std.init("STD", 2);
+      font_san.init("SAN", 0);      // 0-zero inter-character space
+      font_mid.init("MID");
+      font_small.init("SMAL");
+      font_news.init("NEWS");
+      font_bible.init("CASA", 1, 3);
+      font_bard.init("CASA", 0);
+   }
+
+   // non-localized fonts
+   font_hitpoint.init("HITP");
+
+   #ifdef ENABLE_NLS
+      // use correct conversion for non-localized fonts
+      font_hitpoint.cd = locale_res.cd_latin;
+   #endif
 
    image_icon.init(DIR_RES"I_ICON.RES",1,0);       // 1-read into buffer
    image_interface.init(DIR_RES"I_IF.RES",0,0);    // 0-don't read into the buffer, don't use common buffer
@@ -360,13 +433,15 @@ int Sys::init_objects()
    help.init("HELP.RES");
 
    tutor.init();
-   game_file_array.init("*.SAV");
+   // Need to init hall_of_fame *before* save_game_array to persist the last savegame filename
+   hall_of_fame.init();
+   save_game_array.init("*.SAV");
 
    //---------- init game_set -----------//
 
    DEBUG_LOG("Sys::init_objects finish");
 
-   return TRUE;
+   return 1;
 }
 //------- End of function Sys::init_objects -----------//
 
@@ -391,10 +466,6 @@ void Sys::deinit_objects()
    font_bible.deinit();
 	font_bard.deinit();
 
-	#if( defined(GERMAN) || defined(FRENCH) || defined(SPANISH) )
-		font_hall.deinit();
-	#endif
-
    image_icon.deinit();
    image_interface.deinit();
    image_menu.deinit();
@@ -417,7 +488,9 @@ void Sys::deinit_objects()
 
    tutor.deinit();
    config.deinit();
-   game_file_array.deinit();
+   // Need to deinit hall_of_fame *after* save_game_array to persist the last savegame filename
+   save_game_array.deinit();
+   hall_of_fame.deinit();
 }
 //------- End of function Sys::deinit_objects -----------//
 
@@ -427,17 +500,27 @@ void Sys::deinit_objects()
 int Sys::set_config_dir()
 {
    // Get the path for the config directory from SDL. Guaranteed to end with a path separator
-   char *home = SDL_GetPrefPath(CONFIG_ORGANIZATION_NAME, CONFIG_APPLICATION_NAME);
-   strcpy(dir_config, home);
-   SDL_free(home);
-   home = NULL;
+   char *home;
+
+   home = getenv("SKCONFIG");
+   if( home )
+   {
+      strcpy(dir_config, home);
+      strcat(dir_config, PATH_DELIM);
+   }
+   else
+   {
+      home = SDL_GetPrefPath(CONFIG_ORGANIZATION_NAME, CONFIG_APPLICATION_NAME);
+      strcpy(dir_config, home);
+      SDL_free(home);
+   }
 
    MSG("Game config dir path: %s\n", dir_config);
 
    // create the config directory
    if (!misc.mkpath(dir_config))
    {
-      show_error_dialog(_("Unable to determine a location for storing the game configuration."));
+      show_error_dialog(_("Unable to determine a location for storing the game configuration"));
       dir_config[0] = 0;
       return 0;
    }
@@ -492,6 +575,12 @@ void Sys::run(int isLoadedGame)
    main_loop(isLoadedGame);
 
    //-----------------------------------------//
+
+   //------ reset mouse ---------//
+
+   mouse.reset_click();
+   mouse.reset_boundary();
+   mouse_cursor.set_frame(0);
 
    misc.unlock_seed();
 
@@ -686,9 +775,8 @@ void Sys::main_loop(int isLoadedGame)
          vga_front.lock_buf();
 
          yield();       // could be improved, give back the control to Windows, so it can do some OS management. Maybe call WaitMessage() here and set up a timer to get messages regularly.
-#ifndef HEADLESS_SIM
-         vga.flip();
-#endif
+         if( cmd_line.enable_if )
+            vga.flip();
 
          detect();
 
@@ -726,6 +814,9 @@ void Sys::main_loop(int isLoadedGame)
             {
                LOG_BEGIN;
                misc.unlock_seed();
+
+               if( remote.is_replay() )
+                  remote.process_receive_queue();
 
 #ifdef DEBUG_LONG_LOG
                if( remote.is_enable() )
@@ -780,9 +871,8 @@ void Sys::main_loop(int isLoadedGame)
                // second condition (markTime-lastDispFrameTime >= DWORD(1000/config.frame_speed) )
                // may happen in multiplayer, where 'should_next_frame' would pass (what means it's time
                // to process new frame according to config.frame_speed), but 'is_mp_sync' still failed.
-#ifndef HEADLESS_SIM
-               disp_frame();
-#endif
+               if( cmd_line.enable_if )
+                  disp_frame();
                lastDispFrameTime = markTime;
 
 					// ####### patch begin Gilbert 17/11 ######//
@@ -860,7 +950,7 @@ void Sys::main_loop(int isLoadedGame)
 
             if( nation_array.player_recno )     // only save when the player is still in the game
             {
-               game_file.save_game( remote.save_file_name );
+               SaveGameProvider::save_game(remote.save_file_name);
 
                // ####### begin Gilbert 24/10 ######//
                //static String str;
@@ -921,14 +1011,13 @@ void Sys::auto_save()
          static int saveCount = 0;
          switch(saveCount)
          {
-            case 0:  game_file.save_game( "DEBUG1.SAV" );
+            case 0:  SaveGameProvider::save_game("DEBUG1.SAV");
                      break;
-            case 1:  game_file.save_game( "DEBUG2.SAV" );
+			case 1:  SaveGameProvider::save_game("DEBUG2.SAV");
                      break;
-            case 2:  game_file.save_game( "DEBUG3.SAV" );
+			case 2:  SaveGameProvider::save_game("DEBUG3.SAV");
                      break;
          }
-
          if( ++saveCount>=3 )
             saveCount = 0;
       }
@@ -936,14 +1025,13 @@ void Sys::auto_save()
       {
          //---------- get path to savegames ----------//
 
-         char auto1_path[MAX_PATH+1], auto2_path[MAX_PATH+1];
+         FilePath auto1_path(dir_config);
+         FilePath auto2_path(dir_config);
 
-         if (misc.path_cat(auto1_path, dir_config, "AUTO.SAV", MAX_PATH+1) == 0 ||
-             misc.path_cat(auto2_path, dir_config, "AUTO2.SAV", MAX_PATH+1) == 0)
-         {
-	        ERR("Path to the savegames too long.\n");
+         auto1_path += "AUTO.SAV";
+         auto2_path += "AUTO2.SAV";
+         if( auto1_path.error_flag || auto2_path.error_flag )
             return;
-         }
 
          //--- rename the existing AUTO.SAV to AUTO2.SAV and save a new game ---//
 
@@ -955,7 +1043,7 @@ void Sys::auto_save()
             rename( auto1_path, auto2_path );
          }
 
-         game_file.save_game( "AUTO.SAV" );
+         SaveGameProvider::save_game("AUTO.SAV");
       }
 
       //-*********** syn game test ***********-//
@@ -984,16 +1072,15 @@ void Sys::auto_save()
       day_frame_count==0 && info.game_day==1 && info.game_month%2==0 )
 	// ###### patch end Gilbert 23/1 #######//
    {
-	  //---------- get path to savegames ----------//
+      //---------- get path to savegames ----------//
 
-      char auto1_path[MAX_PATH+1], auto2_path[MAX_PATH+1];
+      FilePath auto1_path(dir_config);
+      FilePath auto2_path(dir_config);
 
-	  if (misc.path_cat(auto1_path, dir_config, "AUTO.SVM", MAX_PATH+1) == 0 ||
-          misc.path_cat(auto2_path, dir_config, "AUTO2.SVM", MAX_PATH+1) == 0)
-      {
-	     ERR("Path to the savegames too long.\n");
+      auto1_path += "AUTO.SVM";
+      auto2_path += "AUTO2.SVM";
+      if( auto1_path.error_flag || auto2_path.error_flag )
          return;
-      }
 
       //--- rename the existing AUTO.SVM to AUTO2.SVM and save a new game ---//
 
@@ -1005,7 +1092,7 @@ void Sys::auto_save()
          rename( auto1_path, auto2_path );
       }
 
-      game_file.save_game( "AUTO.SVM" );
+      SaveGameProvider::save_game("AUTO.SVM");
    }
 }
 //-------- End of function Sys::auto_save --------//
@@ -1018,9 +1105,6 @@ void Sys::auto_save()
 //
 void Sys::pause()
 {
-#ifdef HEADLESS_SIM
-   return;
-#endif
    if( config.frame_speed && sys_flag == SYS_RUN )
    {
       set_speed( 0 );
@@ -1048,7 +1132,7 @@ void Sys::unpause()
 //-------- Begin of function Sys::show_error_dialog ----------//
 //
 // Show SDL error dialog that does not depend on video init. This is a blocking
-// routine, and never should be used after init.
+// routine, and never should be used after Sys::init.
 //
 void Sys::show_error_dialog(const char *formatStr, ...)
 {
@@ -1062,6 +1146,7 @@ void Sys::show_error_dialog(const char *formatStr, ...)
    vsnprintf( resultStr, RESULT_STR_LEN, formatStr, argPtr );
    va_end( argPtr );
 
+   deinit_directx(); // in case vga is full screen, destroy game window to ensure dialog is visible
    SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, "Seven Kingdoms", resultStr, NULL );
 }
 //----------- End of function Sys::show_error_dialog ----------//
@@ -1229,10 +1314,10 @@ int Sys::is_mp_sync(int *unreadyPlayerFlag)
          DEBUG_LOG("First send success" );
          remote.init_send_queue(frame_count+1, nation_array.player_recno);    // frame_count, initialize for next frame's send queue
          // sent random seed
-         char *p = (char *)remote.new_send_queue_msg(MSG_TELL_RANDOM_SEED, sizeof(short)+sizeof(long));
+         char *p = (char *)remote.new_send_queue_msg(MSG_TELL_RANDOM_SEED, sizeof(short)+sizeof(int32_t));
          *(short *)p = nation_array.player_recno;
          p += sizeof(short);
-         *(long *)p = misc.get_random_seed();
+         *(int32_t *)p = misc.get_random_seed();
       }
       else
       {
@@ -1256,10 +1341,10 @@ int Sys::is_mp_sync(int *unreadyPlayerFlag)
          DEBUG_LOG("resending ok");
          remote.init_send_queue(frame_count+1, nation_array.player_recno);    // frame_count, initialize for next frame's send queue
          // sent random seed
-         char *p = (char *)remote.new_send_queue_msg(MSG_TELL_RANDOM_SEED, sizeof(short)+sizeof(long));
+         char *p = (char *)remote.new_send_queue_msg(MSG_TELL_RANDOM_SEED, sizeof(short)+sizeof(int32_t));
          *(short *)p = nation_array.player_recno;
          p += sizeof(short);
-         *(long *)p = misc.get_random_seed();
+         *(int32_t *)p = misc.get_random_seed();
       }
       else
       {
@@ -1387,7 +1472,7 @@ int Sys::should_next_frame()
 
    if( next_frame_time )      // if next_frame_time==0, it's the first frame of the game
    {
-      if( next_frame_time < 1000 )  // the DWORD variable has been overflow
+      if( next_frame_time < 1000 )  // the uint32_t variable has been overflow
       {
          if( curTime < next_frame_time || curTime >= 1000 )    // >= 1000 if the curTime has been overflow yet, wait for it to overflow so we can compare it when next_frame_time
             return 0;
@@ -1463,7 +1548,7 @@ void Sys::detect_letter_key(unsigned scanCode, unsigned skeyState)
 {
    int keyCode;
 
-   if((keyCode = mouse.is_key(scanCode, skeyState, (WORD) 0, K_IS_CTRL)))
+   if((keyCode = mouse.is_key(scanCode, skeyState, (unsigned short) 0, K_IS_CTRL)))
    {
       int groupId;
       switch(keyCode)
@@ -1476,7 +1561,7 @@ void Sys::detect_letter_key(unsigned scanCode, unsigned skeyState)
       }
    }
 
-   if((keyCode = mouse.is_key(scanCode, skeyState, (WORD) 0, K_IS_ALT)))
+   if((keyCode = mouse.is_key(scanCode, skeyState, (unsigned short) 0, K_IS_ALT)))
    {
       int groupId;
       switch(keyCode)
@@ -1489,7 +1574,7 @@ void Sys::detect_letter_key(unsigned scanCode, unsigned skeyState)
       }
    }
 
-   if( (keyCode = mouse.is_key(scanCode, skeyState, (WORD) 0, K_UNIQUE_KEY)) )
+   if( (keyCode = mouse.is_key(scanCode, skeyState, (unsigned short) 0, K_UNIQUE_KEY)) )
    {
       keyCode = misc.lower(keyCode);
 
@@ -1510,9 +1595,9 @@ void Sys::detect_letter_key(unsigned scanCode, unsigned skeyState)
             config.opaque_report = !config.opaque_report;
 
             if( config.opaque_report )
-               box.msg( _("Opaque report mode.") );
+               box.msg( _("Opaque report mode") );
             else
-               box.msg( _("Transparent report mode.") );
+               box.msg( _("Transparent report mode") );
          }
          break;
 
@@ -1618,7 +1703,7 @@ void Sys::detect_function_key(unsigned scanCode, unsigned skeyState)
 {
    int keyCode;
 
-   if( (keyCode = mouse.is_key(scanCode, skeyState, (WORD) 0, K_UNIQUE_KEY)) )
+   if( (keyCode = mouse.is_key(scanCode, skeyState, (unsigned short) 0, K_UNIQUE_KEY)) )
    {
       switch(keyCode)
       {
@@ -1704,7 +1789,7 @@ void Sys::detect_cheat_key(unsigned scanCode, unsigned skeyState)
    if( remote.is_enable() )      // no cheat keys in multiplayer games
       return;
 
-   int keyCode = mouse.is_key( scanCode, skeyState, (WORD) 0, K_CHAR_KEY );
+   int keyCode = mouse.is_key( scanCode, skeyState, (unsigned short) 0, K_CHAR_KEY );
 
    if( !keyCode )    // since all keys concern are printable
       return;
@@ -1790,9 +1875,9 @@ void Sys::detect_cheat_key(unsigned scanCode, unsigned skeyState)
          config.fast_build = !config.fast_build;
 
          if( !config.fast_build )
-            box.msg( _("Fast build is now disabled") );
+            box.msg( _("Fast build is now disabled.") );
          else
-            box.msg( _("Fast build is now enabled") );
+            box.msg( _("Fast build is now enabled.") );
          break;
 
       //----- increase the combat level -------//
@@ -1847,7 +1932,7 @@ int Sys::detect_debug_cheat_key(unsigned scanCode, unsigned skeyState)
    if( remote.is_enable() )      // no cheat keys in multiplayer games
       return keyProcessed;
 
-   int keyCode = mouse.is_key( scanCode, skeyState, (WORD) 0, K_IS_CTRL );
+   int keyCode = mouse.is_key( scanCode, skeyState, (unsigned short) 0, K_IS_CTRL );
 
    if( !keyCode )    // since all keys concerned are printable
       return keyProcessed;
@@ -1914,9 +1999,9 @@ int Sys::detect_debug_cheat_key(unsigned scanCode, unsigned skeyState)
          config.disable_ai_flag = !config.disable_ai_flag;
 
          if( config.disable_ai_flag )
-            box.msg( "AI is now disabled" );
+            box.msg( "AI is now disabled." );
          else
-            box.msg( "AI is now enabled" );
+            box.msg( "AI is now enabled." );
          ++keyProcessed;
          break;
 
@@ -1963,7 +2048,7 @@ int Sys::detect_debug_cheat_key(unsigned scanCode, unsigned skeyState)
 /*    //-*********** syn game test ***********-//
       case '\'':
          //if(debug2_enable_flag && debug_sim_game_type)
-         //game_file_array[0]->load_game("syn.sav");
+         //save_game_array[0]->load_game("syn.sav");
          game_file.load_game("syn.sav");
          sp_load_seed_file();
          debug_seed_status_flag = DEBUG_SYN_AUTO_LOAD;
@@ -2013,7 +2098,7 @@ static int detect_scenario_cheat_key(unsigned scanCode, unsigned skeyState)
    if( remote.is_enable() )      // no cheat keys in multiplayer games
       return 0;
 
-   int keyCode = mouse.is_key(scanCode, skeyState, (WORD) 0, K_IS_CTRL);
+   int keyCode = mouse.is_key(scanCode, skeyState, (unsigned short) 0, K_IS_CTRL);
 
    if( !keyCode )
       return 0;
@@ -2376,7 +2461,7 @@ static int detect_scenario_cheat_key(unsigned scanCode, unsigned skeyState)
 //
 int Sys::detect_set_speed(unsigned scanCode, unsigned skeyState)
 {
-   int keyCode = mouse.is_key( scanCode, skeyState, (WORD) 0, K_CHAR_KEY );
+   int keyCode = mouse.is_key( scanCode, skeyState, (unsigned short) 0, K_CHAR_KEY );
 
    if( !keyCode )    // since all keys concerned are printable
       return 0;
@@ -2500,20 +2585,14 @@ void Sys::set_speed(int frameSpeed, int remoteCall)
 //
 void Sys::capture_screen()
 {
-   // NB: Increase this when allowing more decimals in the screenshot file, or when changing the screenshot filename
-   enum {MAX_SCREENSHOT_FILENAME_LENGTH = 8};
+   FilePath full_path(dir_config);
+   const char filename_template[] = "7KXX.BMP";
 
-   char full_path[MAX_PATH+1];
-   int path_len;
+   full_path += filename_template; // template for screenshot filename
+   if( full_path.error_flag )
+      return;
 
-   strcpy(full_path, dir_config);
-   path_len = strlen(full_path);
-   if (path_len + MAX_SCREENSHOT_FILENAME_LENGTH > MAX_PATH)
-   {
-	   ERR("Path to the screenshots too long.\n");
-	   return;
-   }
-
+   char *filename = (char*)full_path+strlen(dir_config);
    String str("7K");
 
    int i;
@@ -2527,7 +2606,7 @@ void Sys::capture_screen()
       str += i;
       str += ".BMP";
 
-	  strcpy(full_path + path_len, str);
+      memcpy(filename, str, strlen(filename_template));
 
       if( !misc.is_file_exist(full_path) )
          break;
@@ -2572,9 +2651,9 @@ void Sys::load_game()
 
    int rc=0;
 
-   game_file_array.init("*.SAV");                  // reload any save game file
-   game_file_array.menu(-2);               // save screen area to back buffer
-   switch( game_file_array.menu(2) )
+   save_game_array.init("*.SAV");                  // reload any save game file
+   save_game_array.menu(-2);               // save screen area to back buffer
+   switch( save_game_array.load_game() )
    {
       case 1:
          rc = 1;                 // fall through to case 0
@@ -2588,12 +2667,12 @@ void Sys::load_game()
 		 sys.signal_exit_flag = 1;
    }
 
-   game_file_array.menu(-1);               // restore screen area from back buffer
+   save_game_array.menu(-1);               // restore screen area from back buffer
 
    //-----------------------------------//
    if( rc == -1)
    {
-      box.msg( _("Fail Loading Game") );
+      box.msg( _("Failed Loading Game") );
       return;
    }
 
@@ -2621,20 +2700,20 @@ void Sys::save_game()
 
    if( remote.is_enable() )
    {
-      DWORD *dwordPtr = (DWORD *)remote.new_send_queue_msg( MSG_REQUEST_SAVE, sizeof(DWORD) );
+      uint32_t *dwordPtr = (uint32_t *)remote.new_send_queue_msg( MSG_REQUEST_SAVE, sizeof(uint32_t) );
       *dwordPtr = remote.next_send_frame(nation_array.player_recno, sys.frame_count+remote.process_frame_delay)+2;
       return;
    }
 
-   game_file_array.init("*.SAV");                  // reload any save game file
-   game_file_array.menu(-2);               // save screen area to back buffer
+   save_game_array.init("*.SAV");                  // reload any save game file
+   save_game_array.menu(-2);               // save screen area to back buffer
 
-   if( game_file_array.menu(1) == 1 )
+   if( save_game_array.menu(1) == 1 )
    {
       box.msg( _("Game Saved Successfully") );
    }
 
-   game_file_array.menu(-1);               // restore screen area from back buffer
+   save_game_array.menu(-1);               // restore screen area from back buffer
 
 	// ##### patch begin Gilbert 16/3 #######//
 	info.disp();
@@ -2644,7 +2723,7 @@ void Sys::save_game()
 
 
 // --------- begin of function Sys::mp_request_save ----------//
-void Sys::mp_request_save(DWORD frame)
+void Sys::mp_request_save(uint32_t frame)
 {
    if( !mp_save_flag )
    {
@@ -2674,7 +2753,7 @@ int Sys::chdir_to_game_dir()
    const char *test_file;
 
    // test current directory
-   test_file = DEFAULT_DIR_IMAGE "HALLFAME.ICN";
+   test_file = "IMAGE" PATH_DELIM "HALLFAME.ICN";
    if (misc.is_file_exist(test_file))
       return 1;
 
@@ -2697,13 +2776,13 @@ int Sys::chdir_to_game_dir()
    }
 
    // test compile time path
-#ifdef PACKAGE_DATA_PATH
-   chdir(PACKAGE_DATA_PATH);
+#ifdef PACKAGE_DATA_DIR
+   chdir(PACKAGE_DATA_DIR);
    if (misc.is_file_exist(test_file))
       return 1;
 #endif
 
-   show_error_dialog(_("Unable to locate the game resources."));
+   show_error_dialog(_("Unable to locate the game resources"));
 
    return 0;
 }
@@ -2714,19 +2793,32 @@ int Sys::chdir_to_game_dir()
 //
 // Set all game directories. Return true on success.
 //
+#define P PATH_DELIM
 int Sys::set_game_dir()
 {
    if (!chdir_to_game_dir())
       return 0;
 
-   strcpy(dir_image, DEFAULT_DIR_IMAGE);
-   strcpy(dir_encyc, DEFAULT_DIR_ENCYC);
-   strcpy(dir_encyc2, DEFAULT_DIR_ENCYC2);
-   strcpy(dir_movie, DEFAULT_DIR_MOVIE);
-   strcpy(dir_music, DEFAULT_DIR_MUSIC);
-   strcpy(dir_tutorial, DEFAULT_DIR_TUTORIAL);
-   strcpy(dir_scenario, DEFAULT_DIR_SCENARIO);
-   strcpy(dir_scenario_path[1], DEFAULT_DIR_SCENARI2);
+   set_one_dir( "HALLFAME.ICN"         , "IMAGE" P   , dir_image );
+   set_one_dir( "SEAT" P "NORMAN.ICN"  , "ENCYC" P   , dir_encyc );
+//#ifdef AMPLUS
+   set_one_dir( "SEAT" P "EGYPTIAN.ICN", "ENCYC2" P  , dir_encyc2 );
+//#endif
+   set_one_dir( "INTRO.AVI"            , "MOVIE" P   , dir_movie );
+
+#ifdef DEMO
+   set_one_dir( "DEMO.WAV"             , "MUSIC" P   , dir_music );
+   set_one_dir( "STANDARD.TUT"         , "TUTORIAL" P, dir_tutorial );
+   set_one_dir( "DEMO.SCN"             , "SCENARIO" P, dir_scenario );
+#else
+   set_one_dir( "NORMAN.WAV"           , "MUSIC" P   , dir_music );
+   set_one_dir( "1BAS_MIL.TUT"         , "TUTORIAL" P, dir_tutorial );
+   set_one_dir( "7FOR7.SCN"            , "SCENARIO" P, dir_scenario );
+#endif
+
+#if(MAX_SCENARIO_PATH >= 2)
+   set_one_dir( "SCN_01.SCN"           , "SCENARI2" P, dir_scenario_path[1] );
+#endif
 
    //-------- set game version ---------//
 
@@ -2735,6 +2827,29 @@ int Sys::set_game_dir()
    return 1;
 }
 //----------- End of function Sys::set_game_dir ----------//
+#undef P
+
+
+//-------- Begin of function Sys::set_one_dir ----------//
+//
+int Sys::set_one_dir(const char* checkFileName, const char* defaultDir, char* trueDir)
+{
+   FilePath full_path(defaultDir);
+   full_path += checkFileName;
+
+   if( !full_path.error_flag && misc.is_file_exist(full_path) )
+   {
+      strcpy(trueDir, defaultDir);
+   }
+   else
+   {
+      trueDir[0] = 0;
+      return 0;
+   }
+
+   return 1;
+}
+//----------- End of function Sys::set_one_dir ----------//
 
 
 //-------- Start of function locate_king_general -------------//

@@ -26,6 +26,8 @@
 
 #include <OUNIT.h>
 
+struct UnitExpCartCrc;
+
 #pragma pack(1)
 class UnitExpCart : public Unit
 {
@@ -40,8 +42,9 @@ public:
 	void	trigger_explode();
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(UnitExpCartCrc *c);
 };
 #pragma pack()
 

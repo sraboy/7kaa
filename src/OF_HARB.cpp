@@ -654,7 +654,7 @@ void FirmHarbor::disp_build_button(int y, int unitId, int buttonUp)
 	//-------- display unit name --------//
 
 	String str;
-	str = unitInfo->name;
+	str = _(unitInfo->name);
 	font_bible.put( x+60, y+14, str );
 	disp_queue_button(y0+COUNT_BUTTON_OFFSET_Y, unitId, 1);
 }
@@ -704,7 +704,7 @@ static void i_disp_build_button(ButtonCustom *button, int repaintBody)
 		//-------- display unit name --------//
 
 		String str;
-		str = unitInfo->name;
+		str = _(unitInfo->name);
 
 		if( unitInfo->unit_class == UNIT_CLASS_WEAPON )		// add version no.
 		{
@@ -812,9 +812,10 @@ static void i_disp_queue_button(ButtonCustom *button, int repaintBody)
 //
 void FirmHarbor::detect_build_menu()
 {
-	int 	 	 unitId, x=INFO_X1+2, y=INFO_Y1, rc, quitFlag;
+	int 	 	 unitId, x=INFO_X1+2, y=INFO_Y1, rc, quitFlag, waitFlag;
 	UnitInfo* unitInfo;
 
+	waitFlag = 0;
 	for(int b=0; b<added_count; ++b)
 	{
 		// ###### begin Gilbert 20/9 #########//
@@ -832,12 +833,15 @@ void FirmHarbor::detect_build_menu()
 		}
 
 		//------ detect pressing on the big button -------//
-		else if( (rc = button_ship[b].detect(0,0,2)) != 0 )
+		else if( !button_queue_ship[b].button_wait && ((rc = button_ship[b].detect(0,0,2)) != 0) )
 		{
 			quitFlag = 1;		// quit the menu right after pressing the button
 		}
 		// ####### end Gilbert 20/9 ########//
-		
+
+		if( button_queue_ship[b].button_wait || button_ship[b].button_wait )
+			waitFlag = 1;
+
 		int shiftPressed = mouse.event_skey_state & SHIFT_KEY_MASK;
 
 		//------- process the action --------//
@@ -897,7 +901,7 @@ void FirmHarbor::detect_build_menu()
 
 	//------ detect the cancel button --------//
 
-	if( button_cancel.detect() || mouse.any_click(1) )		// press the cancel button or right click
+	if( button_cancel.detect() || (!waitFlag && mouse.any_click(1)) )		// press the cancel button or right click
 	{
 		harbor_menu_mode = HARBOR_MENU_MAIN;
 		info.disp();
@@ -1273,7 +1277,7 @@ static void put_ship_rec(int recNo, int x, int y, int refreshFlag)
 
 	//---------- display unit name ----------//
 
-	font_san.put( x+32 , y, unitInfo->name, 1, x+119 );		// 1-use short words
+	font_san.put( x+32 , y, _(unitInfo->name), 1, x+119 );		// 1-use short words
 
 	//------- display unit hit points -------//
 

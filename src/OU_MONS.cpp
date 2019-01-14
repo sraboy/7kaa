@@ -55,19 +55,24 @@ char* UnitMonster::unit_name(int withTitle)
 {
 	static String str;
 
-	char* monsterName = monster_res[get_monster_id()]->name;   // contribution is used for storing the monster id. temporary
+	char* monsterName = _(monster_res[get_monster_id()]->name);
 
-	str = monsterName;
+	str = "";
 
 	switch( rank_id )
 	{
 		case RANK_KING:
+			// TRANSLATORS: "All High <monster type>" which describes a king-ranking monster
 			snprintf( str, MAX_STR_LEN+1, _("All High %s"), monsterName );
 			break;
 
 		case RANK_GENERAL:
+			// TRANSLATORS: "<monster type> Ordo" which describes a general-ranking monster
 			snprintf( str, MAX_STR_LEN+1, _("%s Ordo"), monsterName );
 			break;
+
+		default:
+			str = monsterName;
 	}
 
 	return str;
@@ -178,7 +183,7 @@ void UnitMonster::king_leave_scroll()
 	int		 xLoc, yLoc;
 	Location* locPtr;
 	int		 curXLoc = next_x_loc(), curYLoc = next_y_loc();
-	BYTE	 	 regionId = world.get_region_id(curXLoc, curYLoc);
+	int	 	 regionId = world.get_region_id(curXLoc, curYLoc);
 	short		 raceCountArray[MAX_RACE];
 
 	memset( raceCountArray, 0, sizeof(raceCountArray) );
@@ -270,7 +275,7 @@ int UnitMonster::random_attack()
 	int		 xLoc, yLoc;
 	Location* locPtr;
 	int		 curXLoc = next_x_loc(), curYLoc = next_y_loc();
-	BYTE	 	 regionId = world.get_region_id(curXLoc, curYLoc);
+	int	 	 regionId = world.get_region_id(curXLoc, curYLoc);
 	int		 rc;
 
 	for( int i=2 ; i<ATTACK_SCAN_RANGE*ATTACK_SCAN_RANGE ; i++ )
@@ -350,7 +355,7 @@ int UnitMonster::assign_to_firm()
 	int 	i, firmCount=firm_array.size();
 	Firm* firmPtr;
 	int	curXLoc = next_x_loc(), curYLoc = next_y_loc();
-	BYTE	regionId = world.get_region_id(curXLoc, curYLoc);
+	int	regionId = world.get_region_id(curXLoc, curYLoc);
 
 	int firmRecno = misc.random(firm_array.size())+1;
 
@@ -393,7 +398,7 @@ void UnitMonster::group_order_monster(int destXLoc, int destYLoc, int actionType
 	#define 	 MAX_MONSTER_GROUP_COUNT  15
 
 	int		 curXLoc = next_x_loc(), curYLoc = next_y_loc();
-	BYTE		 regionId = world.get_region_id(curXLoc, curYLoc);
+	int		 regionId = world.get_region_id(curXLoc, curYLoc);
 
 	short 	 unitOrderedArray[MAX_MONSTER_GROUP_COUNT];
 	int		 unitOrderedCount=0;

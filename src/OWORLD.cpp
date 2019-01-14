@@ -308,6 +308,9 @@ int World::detect()
 //
 int World::detect_scroll()
 {
+   if( !vga.is_input_grabbed() )
+      return 0;
+
    if( mouse_cursor.frame_flag )    // if it's now in frame selection mode
       return 0;
 
@@ -318,7 +321,7 @@ int World::detect_scroll()
 
    //----- scroll left -----//
 
-   if( mouse.cur_x == mouse.bound_x1 )
+   if( mouse.cur_x <= mouse.bound_x1 )
    {
       zoom_matrix->scroll(-1,0);
       rc = 1;
@@ -326,7 +329,7 @@ int World::detect_scroll()
 
    //---- scroll right -----//
 
-   if( mouse.cur_x == mouse.bound_x2 )
+   if( mouse.cur_x >= mouse.bound_x2 )
    {
       zoom_matrix->scroll(1,0);
       rc = 1;
@@ -334,7 +337,7 @@ int World::detect_scroll()
 
    //---- scroll top -------//
 
-   if( mouse.cur_y == mouse.bound_y1 )
+   if( mouse.cur_y <= mouse.bound_y1 )
    {
       zoom_matrix->scroll(0,-1);
       rc = 1;
@@ -342,7 +345,7 @@ int World::detect_scroll()
 
    //---- scroll bottom ----//
 
-   if( mouse.cur_y == mouse.bound_y2 )
+   if( mouse.cur_y >= mouse.bound_y2 )
    {
       zoom_matrix->scroll(0,1);
       rc = 1;
@@ -412,8 +415,12 @@ void World::go_loc(int xLoc, int yLoc, int selectFlag)
 		}
 		else if( locPtr->is_firm() )
 		{
+			int firmRecno = locPtr->firm_recno();
+
 			power.reset_selection();
-			firm_array.selected_recno = locPtr->firm_recno();
+
+			firm_array.selected_recno = firmRecno;
+			firm_array[firmRecno]->sort_worker();
 		}
 		else if( locPtr->is_town() )
 		{
@@ -1656,6 +1663,7 @@ int World::detect_firm_town()
 			{
 				power.reset_selection();
 				firm_array.selected_recno = i;
+				firmPtr->sort_worker();
 				info.disp();
 
 				// -------- sound effect -----------//
@@ -2213,6 +2221,7 @@ void World::disp_next(int seekDir, int sameNation)
 			{
 				power.reset_selection();
 				firm_array.selected_recno = firmRecno;
+				firmPtr->sort_worker();
 
 				world.go_loc( firmPtr->center_x, firmPtr->center_y );
 				return;
@@ -2351,7 +2360,7 @@ Location* World::get_loc(int xLoc, int yLoc)
 
 //--------- Begin of function World::get_region_id --------//
 //
-BYTE World::get_region_id(int xLoc, int yLoc)
+uint8_t World::get_region_id(int xLoc, int yLoc)
 {
 	err_when( xLoc<0 || xLoc>=MAX_WORLD_X_LOC );
 	err_when( yLoc<0 || yLoc>=MAX_WORLD_Y_LOC );

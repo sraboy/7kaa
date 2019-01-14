@@ -41,6 +41,8 @@
 #define  	MAX_BASE_PRAYER		30
 #define		MAX_PRAY_POINTS		400
 
+struct FirmBaseCrc;
+
 //------- Define class FirmBase --------//
 
 #pragma pack(1)
@@ -75,8 +77,9 @@ public:
 	virtual	FirmBase* cast_to_FirmBase() { return this; };
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(FirmBaseCrc *c);
 
 private:
 	void 		disp_base_info(int dispY1, int refreshFlag);

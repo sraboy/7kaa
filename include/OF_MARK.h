@@ -77,6 +77,8 @@ struct MarketGoods
 };
 #pragma pack()
 
+struct FirmMarketCrc;
+
 //------- Define class FirmMarket --------//
 
 #pragma pack(1)
@@ -132,8 +134,9 @@ public:
 	int		read_derived_file(File* filePtr);
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(FirmMarketCrc *c);
 
 private:
 	void		put_market_info(int dispY1, int refreshFlag);

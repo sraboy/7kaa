@@ -103,13 +103,12 @@ public:
 	unsigned long get_time();
 
    void  randomize();
-   void  set_random_seed(long);
+   void  set_random_seed(int32_t);
    long  get_random_seed();
    int   rand();
    int   random(int);
 
    int   is_file_exist(const char*);
-	int   path_cat(char *dest, const char *src1, const char *src2, int max_len);
 	int   mkpath(char *abs_path);
    void  change_file_ext(char*,const char*,const char*);
    void  extract_file_name(char*,const char*);

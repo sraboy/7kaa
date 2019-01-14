@@ -32,7 +32,8 @@
 #include <OTUTOR.h>
 #include <OBUTTON.h>
 #include <OBATTLE.h>
-#include <OGFILE.h>
+#include <OSaveGameArray.h>
+#include <OGAMHALL.h>
 #include <OMUSIC.h>
 #include <OGAME.h>
 #include <OVGALOCK.h>
@@ -258,6 +259,15 @@ void Game::main_menu()
 			}
 		}
 
+		// method to start a game replay at this time
+		if( mouse.is_key_event() && mouse.scan_code == 'r')
+		{
+			init();
+			battle.run_replay();
+			deinit();
+			refreshFlag=1;
+		}
+
 		//-------------------------------------//
 
 		if( sys.signal_exit_flag == 1 || i == MAIN_OPTION_COUNT-1 )			// quit the system now
@@ -319,7 +329,7 @@ void Game::run_main_menu_option(int optionId)
 
 	if( optionId==4 )
 	{
-		game_file_array.disp_hall_of_fame();
+		hall_of_fame.disp_hall_of_fame();
 	}
 
 	//------------- Credits -----------//
@@ -608,9 +618,9 @@ void Game::single_player_menu()
 						break;
 
 					case 3:
-						game_file_array.init("*.SAV");
+						save_game_array.init("*.SAV");
 
-						if( game_file_array.menu(2) == 1)
+						if( save_game_array.load_game() == 1)
 						{
 							battle.run_loaded();
 							deinit();
@@ -618,7 +628,7 @@ void Game::single_player_menu()
 						{
 							char signalExitFlagBackup = sys.signal_exit_flag;
 							sys.signal_exit_flag = 2;
-							game.deinit();   // game.deinit() is needed if game_file_array.menu fails
+							game.deinit();   // game.deinit() is needed if save_game_array.menu fails
 							sys.signal_exit_flag = signalExitFlagBackup;
 						}
 						break;
@@ -849,18 +859,18 @@ void Game::multi_player_menu(int lobbied, char *game_host)
 						// ##### begin Gilbert 26/8 ######//
 						{
 							int loadedRecno = 0;
-							game_file_array.init("*.SVM");
-							if( game_file_array.menu(2, &loadedRecno) == 1 )
+							save_game_array.init("*.SVM");
+							if( save_game_array.menu(2, &loadedRecno) == 1 )
 							{
 								err_when( !loadedRecno );
 								// ####### begin Gilbert 13/2 #######//
-								load_mp_game(game_file_array[loadedRecno]->file_name, lobbied, game_host);
+								load_mp_game(save_game_array[loadedRecno]->file_info.name, lobbied, game_host);
 								// ####### begin Gilbert 13/2 #######//
 							}
 							{
 								char signalExitFlagBackup = sys.signal_exit_flag;
 								sys.signal_exit_flag = 2;
-								game.deinit();		// game.deinit() is needed if game_file_array.menu fails
+								game.deinit();		// game.deinit() is needed if save_game_array.menu fails
 								sys.signal_exit_flag = signalExitFlagBackup;
 							}
 						// ##### end Gilbert 26/8 ######//

@@ -28,6 +28,8 @@
 #include <OFIRM.h>
 #endif
 
+struct FirmFactoryCrc;
+
 //------- Define class FirmFactory --------//
 
 #pragma pack(1)
@@ -71,8 +73,9 @@ public:
 	virtual	FirmFactory* cast_to_FirmFactory() { return this; };
 
 	//-------------- multiplayer checking codes ---------------//
-	virtual	UCHAR crc8();
+	virtual	uint8_t crc8();
 	virtual	void	clear_ptr();
+	virtual	void	init_crc(FirmFactoryCrc *c);
 
 private:
 	void		auto_set_product();

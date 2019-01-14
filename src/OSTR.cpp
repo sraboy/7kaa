@@ -23,7 +23,10 @@
 
 #include <OMISC.h>
 #include <OSTR.h>
-#include <win32_compat.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+#include <cctype>
 
 
 //------- Define static variable --------//
@@ -95,7 +98,13 @@ char* String::substr(int pos, int len)
 char* String::upper()
 {
    memcpy( work_buf, str_buf, len()+1 );
-   strupr( work_buf );
+
+   char* str = work_buf;
+   while (*str)
+   {
+	   *str = std::toupper(*str);
+	   str++;
+   }
 
    return work_buf;
 }
@@ -103,7 +112,13 @@ char* String::upper()
 char* String::lower(void)
 {
    memcpy( work_buf, str_buf, len()+1 );
-   strlwr( work_buf );
+
+   char* str = work_buf;
+   while (*str)
+   {
+	   *str = std::tolower(*str);
+	   str++;
+   }
 
    return work_buf;
 }
@@ -131,6 +146,22 @@ int String::at(char* searchStr)
   return pos;
 }
 //---------- End of function String::at ---------------//
+
+
+//-------- Begin of function String::catf ---------------//
+//
+// A formatted string concatenation
+//
+void String::catf(char *format, ...)
+{
+   va_list valist;
+   va_start(valist, format);
+   vsnprintf(work_buf, MAX_STR_LEN+1, format, valist);
+   va_end(valist);
+   strncat(str_buf, work_buf, MAX_STR_LEN);
+   str_buf[MAX_STR_LEN] = '\0';
+}
+//---------- End of function String::catf ---------------//
 
 
 //-------- Begin of operator= functions -----------//

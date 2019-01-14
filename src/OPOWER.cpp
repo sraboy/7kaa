@@ -1103,7 +1103,7 @@ int Power::detect_select(int selX1, int selY1, int selX2, int selY2, int recallG
 
 				if( recallGroup && unitPtr->team_id )
 				{
-					DWORD teamId = unitPtr->team_id;
+					uint32_t teamId = unitPtr->team_id;
 					char newSelectedFlag = shiftSelect ? (unitPtr->selected_flag ? 0 : 1) : 2;
 					for( i=unit_array.size() ; i>0 ; i-- )
 					{
@@ -1371,6 +1371,11 @@ int Power::detect_select(int selX1, int selY1, int selX2, int selY2, int recallG
 		wall_res.selected_y_loc   = selectedWallYLoc;
 
 		reset_command();		// reset current command when a new unit is selected
+
+		//--- update worker display for selected firm ---//
+
+		if( selectedFirmRecno )
+			firm_array[selectedFirmRecno]->sort_worker();
 
 		//--- group them automatically if a group of units are selected ---//
 

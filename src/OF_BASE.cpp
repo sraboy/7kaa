@@ -219,7 +219,7 @@ void FirmBase::put_info(int refreshFlag)
 			button_reward.disable();
 		}
 
-		if (worker_count)
+		if( have_own_workers() )
 			button_vacate_firm.enable();
 		else
 			button_vacate_firm.disable();
@@ -613,7 +613,7 @@ void FirmBase::disp_god_info(int dispY1, int refreshFlag)
 
 		x += UNIT_LARGE_ICON_WIDTH+10;
 
-		font_san.put( x, y+2, unitInfo->name );
+		font_san.put( x, y+2, _(unitInfo->name) );
 	}
 	else
 	{

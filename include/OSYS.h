@@ -124,18 +124,18 @@ public:
 
 	char  	cdrom_drive;
 
-	char    dir_config[MAX_PATH+1];
-	char  	dir_image[MAX_PATH+1];
-	char  	dir_encyc[MAX_PATH+1];
-	char  	dir_encyc2[MAX_PATH+1];
-	char  	dir_music[MAX_PATH+1];
-	char  	dir_movie[MAX_PATH+1];
-	char  	dir_tutorial[MAX_PATH+1];
+	char    dir_config[FilePath::MAX_FILE_PATH];
+	char  	dir_image[FilePath::MAX_FILE_PATH];
+	char  	dir_encyc[FilePath::MAX_FILE_PATH];
+	char  	dir_encyc2[FilePath::MAX_FILE_PATH];
+	char  	dir_music[FilePath::MAX_FILE_PATH];
+	char  	dir_movie[FilePath::MAX_FILE_PATH];
+	char  	dir_tutorial[FilePath::MAX_FILE_PATH];
 
 	union
 	{
-		char dir_scenario[MAX_PATH+1];
-		char dir_scenario_path[MAX_SCENARIO_PATH][MAX_PATH+1];
+		char dir_scenario[FilePath::MAX_FILE_PATH];
+		char dir_scenario_path[MAX_SCENARIO_PATH][FilePath::MAX_FILE_PATH];
 	};
 
 	//------- other vars --------//
@@ -172,7 +172,7 @@ public:
 
 	void		show_error_dialog(const char *formatStr, ...);
 
-	void		mp_request_save(DWORD frame);
+	void		mp_request_save(uint32_t frame);
 	void		mp_clear_request_save();
 
 	//-------------- single player syn. game testing functions --------------//
@@ -191,6 +191,7 @@ public:
 	int 		set_config_dir();
 	int		chdir_to_game_dir();
 	int		set_game_dir();
+	int		set_one_dir(const char* checkFileName, const char* defaultDir, char* trueDir);
 
 	//-------- for load/save games --------//
 
