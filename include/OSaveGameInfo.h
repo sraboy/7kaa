@@ -39,7 +39,9 @@ struct SaveGameTime
 struct SaveGameInfo
 {
 	enum { MAX_FILE_PATH = 260 };
-	char     file_name[MAX_FILE_PATH+1]; // unused
+	// Re-purposed from "file_name" which isn't needed. Now we
+	// can keep scenario/tutorial names to track completion.
+	char     game_name[MAX_FILE_PATH+1];
 	char     player_name[HUMAN_NAME_LEN+1];
 
 	char     race_id;

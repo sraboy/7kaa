@@ -49,8 +49,8 @@ public:
 	// Deletes the savegame whose file part of filename is saveGameName.
 	static void delete_savegame(const char* saveGameName);
 
-	// Save the current game under the file specified by newFileName.
-	static bool save_game(const char* newFileName);
+	// Save the current game to the file specified by newFileName with the specified gameName set in the header.
+	static bool save_game(const char* newFileName, const char* gameName);
 	// Save the current game under the file specified by newFileName. Sets saveGameInfo to the new savegame information on success.
 	static bool save_game(const char* newFileName, SaveGameInfo* /*out*/ saveGameInfo);
 

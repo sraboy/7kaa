@@ -102,9 +102,12 @@ void SaveGameProvider::delete_savegame(const char* saveGameName) {
 //
 // Save the current game under the file specified by newFileName.
 //
-bool SaveGameProvider::save_game(const char* newFileName)
+bool SaveGameProvider::save_game(const char* newFileName, const char* gameName)
 {
 	SaveGameInfo newSaveGameInfo;
+	// Retain the old game name from the header, to help in identifying scenario/tutorial games
+	memset(newSaveGameInfo.game_name, 0, sizeof(SaveGameInfo::game_name));
+	strncpy(newSaveGameInfo.game_name, gameName, sizeof(SaveGameInfo::game_name) - 1);
 	return save_game(newFileName, /*out*/ &newSaveGameInfo);
 }
 //-------- End of function SaveGameProvider::save_game(1) --------//
