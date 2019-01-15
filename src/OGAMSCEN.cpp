@@ -77,6 +77,7 @@ int Game::select_run_scenario()
 					char	txtFileName[20];
 					scenInfoArray[scenInfoSize].file_name = gameDir[i]->name;    // keep the pointers to the file name string
 					scenInfoArray[scenInfoSize].dir_id    = dirId;
+					scenInfoArray[scenInfoSize].status = ScenInfo::Status::UNPLAYED;    // Default to unplayed
 
 					{
 						misc.change_file_ext( txtFileName, gameDir[i]->name, "SCT" );
@@ -113,6 +114,37 @@ int Game::select_run_scenario()
 	//-------- sort by difficulty ---------- //
 
 	qsort(scenInfoArray, scenInfoSize, sizeof(ScenInfo), sort_scenario_func);
+
+    //-------- check or create scenario status tracking file ---------- //
+
+    FILE *f;
+    String filePath = get_scenario_list_file();
+
+    if (f = fopen(filePath, "r")) {
+        String line;
+
+        for (int i = 0; i < scenInfoSize; i++)
+        {
+            fgets(line, 256, f);
+            if (strcmp(line, scenInfoArray[i].scen_name) != 0)          // Read scenario name
+            {
+                fgets(line, 256, f);                                    // Read Status token
+                char token = line[7];
+                int val = token - '0';
+                scenInfoArray[i].status = static_cast<ScenInfo::Status>(val);
+            }
+            else
+            {
+                scenInfoArray[i].status = ScenInfo::Status::UNPLAYED;   // Assume unplayed if not found
+            }
+        }
+
+        fclose(f);
+    }
+    else                                                                // Create a new file
+    {
+        write_scenario_list(scenInfoSize, scenInfoArray);
+    }
 
 	//-------- select and run a scenario --------//
 
@@ -271,4 +303,38 @@ int sort_scenario_func(const void *arg1, const void *arg2)
 }
 //-------- End of function init_scenario_var ----------//
 
+//-------- Start of function write_scenario_list ----------//
+//
+void Game::write_scenario_list(int scenCount, ScenInfo* scenInfoArray)
+{
+    String filePath = get_scenario_list_file();
+    FILE* f;
 
+    const char *str = "Status:";
+    if (f = fopen(filePath, "w")) {
+        for (int i = 0; i < scenCount; i++) {
+            fprintf(f, "%s\n", scenInfoArray[i].scen_name); // write scenario name
+            fprintf(f, str);                                // write status token
+            fprintf(f, "%d\n", scenInfoArray[i].status);
+        }
+
+        fclose(f);
+    }
+}
+//-------- End of function write_scenario_list ----------//
+
+//-------- Start of function get_scenario_list_file ----------//
+//
+String Game::get_scenario_list_file()
+{
+    String filePath(sys.dir_config);
+    if (!misc.mkpath(sys.dir_config))
+    {
+        filePath += ".";
+    }
+
+    filePath += PATH_DELIM;
+    filePath += "scn_list.txt";
+    return filePath;
+}
+//-------- End of function get_scenario_list_file ----------//
