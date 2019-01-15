@@ -76,6 +76,8 @@ struct ScenInfo
 	char		dir_id;			// real path look from DIR_SCENARIO_PATH(dir_id)
 	short		goal_difficulty;
 	short 	goal_score_bonus;
+	enum Status : int { UNPLAYED = 0, PLAYED = 1, COMPLETED = 2 };
+	Status    status;
 };
 
 //-------- Define class Game -----------//
@@ -106,6 +108,7 @@ public:
    void			in_game_menu();
 	int			in_game_option_menu();
 	void 			game_end(int winNationRecno, int playerDestroyed=0, int surrenderToNationRecno=0, int retireFlag=0);
+	void			write_scenario_list(int scenCount, ScenInfo* scenInfoArray);
 
 	int 			select_run_scenario();
 	int 			select_scenario(int scenCount, ScenInfo* scenInfoArray);
@@ -146,6 +149,7 @@ private:
 	int			input_box(const char *tell_string, char *buf, int len, char hide_input=0);
 	int			input_name_pass(const char *txt[], char *name, int name_len, char *pass, int pass_len);
 
+	String          Game::get_scenario_list_file();
 	//------- multiplayer game functions -------//
 
 	int 			mp_select_mode(char *saveGameName, int service_mode);
