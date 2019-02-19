@@ -397,6 +397,9 @@ void Vga::handle_messages()
 	  case SDL_FINGERDOWN:
          scrolling = false;
          break;
+	  case SDL_MOUSEWHEEL:
+          scroll_x = event.wheel.x;
+          scroll_y = event.wheel.y;
       case SDL_WINDOWEVENT:
          switch (event.window.event)
          {
