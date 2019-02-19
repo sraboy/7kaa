@@ -359,7 +359,7 @@ bool Vga::get_mouse_scroll(int * x, int * y) {
     scroll_x = 0;
     scroll_y = 0;
     if (*x != 0 || *y != 0) 
-    { 
+    {
         return true; 
     }
     return false;
@@ -379,10 +379,13 @@ void Vga::handle_messages()
          break;
 	  case SDL_MULTIGESTURE:
          if (event.mgesture.numFingers == 2) {
-            if (!scrolling) {
+            if (!scrolling)
+            {
 			   scroll_prev_y = event.mgesture.y;
 			   scroll_prev_x = event.mgesture.x;
-		    } else {
+		    }
+		    else
+		    {
 		      double dy = event.mgesture.y - scroll_prev_y;
 		      scroll_y = dy * scroll_sensitivity;
 		      double dx = event.mgesture.x - scroll_prev_x;
