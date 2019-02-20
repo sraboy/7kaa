@@ -308,7 +308,8 @@ int World::detect()
 //
 int World::detect_scroll()
 {
-   if( !vga.is_input_grabbed() )
+   int scroll_x = 0, scroll_y = 0;
+   if( !vga.is_input_grabbed() && !mouse.get_scroll(&scroll_x, &scroll_y))
       return 0;
 
    if( mouse_cursor.frame_flag )    // if it's now in frame selection mode
@@ -319,44 +320,48 @@ int World::detect_scroll()
 
    int rc=0;
 
-   //----- scroll left -----//
-
-   if( mouse.cur_x <= mouse.bound_x1 )
+   if ( scroll_x || scroll_y )
    {
-      zoom_matrix->scroll(-1,0);
-      rc = 1;
+       zoom_matrix->scroll(scroll_x, scroll_y);
+       rc = 1;
    }
-
-   //---- scroll right -----//
-
-   if( mouse.cur_x >= mouse.bound_x2 )
+   else
    {
-      zoom_matrix->scroll(1,0);
-      rc = 1;
+       //----- scroll left -----//
+
+       if (mouse.cur_x <= mouse.bound_x1) {
+           zoom_matrix->scroll(-1, 0);
+           rc = 1;
+       }
+
+       //---- scroll right -----//
+
+       if (mouse.cur_x >= mouse.bound_x2) {
+           zoom_matrix->scroll(1, 0);
+           rc = 1;
+       }
+
+       //---- scroll top -------//
+
+       if (mouse.cur_y <= mouse.bound_y1) {
+           zoom_matrix->scroll(0, -1);
+           rc = 1;
+       }
+
+       //---- scroll bottom ----//
+
+       if (mouse.cur_y >= mouse.bound_y2) {
+           zoom_matrix->scroll(0, 1);
+           rc = 1;
+       }
+
+       //----- set next scroll time based on scroll_speed -----//
+       //
+       // slowest scroll speed: 500/1  = 500 milliseconds or 1/2 second
+       // fastest scroll speed: 500/10 = 50  milliseconds or 1/20 second
+       //
+       //------------------------------------------------------//
    }
-
-   //---- scroll top -------//
-
-   if( mouse.cur_y <= mouse.bound_y1 )
-   {
-      zoom_matrix->scroll(0,-1);
-      rc = 1;
-   }
-
-   //---- scroll bottom ----//
-
-   if( mouse.cur_y >= mouse.bound_y2 )
-   {
-      zoom_matrix->scroll(0,1);
-      rc = 1;
-   }
-
-   //----- set next scroll time based on scroll_speed -----//
-   //
-   // slowest scroll speed: 500/1  = 500 milliseconds or 1/2 second
-   // fastest scroll speed: 500/10 = 50  milliseconds or 1/20 second
-   //
-   //------------------------------------------------------//
 
    if( rc )
    {

@@ -364,7 +364,17 @@ void Vga::handle_messages()
       case SDL_QUIT:
          sys.signal_exit_flag = 1;
          break;
-
+      case SDL_MULTIGESTURE:
+         if (event.mgesture.numFingers == 2) {
+            mouse.process_scroll(event.mgesture.x, event.mgesture.y);
+         }
+         break;
+      case SDL_FINGERDOWN:
+         mouse.end_scroll();
+         break;
+      case SDL_MOUSEWHEEL:
+          mouse.process_scroll(event.wheel.x, event.wheel.y * -1);
+          break;
       case SDL_WINDOWEVENT:
          switch (event.window.event)
          {
