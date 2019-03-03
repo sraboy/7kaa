@@ -422,6 +422,7 @@
     <ClCompile Include="..\src\OW_ROCK.cpp" />
     <ClCompile Include="..\src\OW_SOUND.cpp" />
     <ClCompile Include="..\src\OW_WALL.cpp" />
+    <ClCompile Include="..\src\PlayerStats.cpp" />
     <ClCompile Include="..\src\player_desc.cpp" />
     <ClCompile Include="..\src\ReplayFile.cpp" />
     <ClCompile Include="..\src\session_desc.cpp" />
@@ -610,6 +611,7 @@
     <ClInclude Include="..\include\OWEATHER.h" />
     <ClInclude Include="..\include\OWORLD.h" />
     <ClInclude Include="..\include\OWORLDMT.h" />
+    <ClInclude Include="..\include\PlayerStats.h" />
     <ClInclude Include="..\include\player_desc.h" />
     <ClInclude Include="..\include\posix_string_compat.h" />
     <ClInclude Include="..\include\ReplayFile.h" />
