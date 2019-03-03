@@ -147,7 +147,7 @@ PlayStatus PlayerStats::get_scenario_play_status(char const * internal_name) {
 	}
 
 	// Find a matching name and return its status
-	for (int i = 0; i < scn_stat_arr_len; i++) {
+	for (unsigned i = 0; i < scn_stat_arr_len; i++) {
 		if (!strncmp(scn_stat_arr[i].internal_name, internal_name, detail::MAX_FILE_PATH)) {
 			return scn_stat_arr[i].status;
 		}
@@ -169,7 +169,7 @@ bool PlayerStats::set_scenario_play_status(char const * name, PlayStatus status)
 		load_player_stats();
 	}
 
-	for (int i = 0; i < scn_stat_arr_len; i++) {
+	for (unsigned i = 0; i < scn_stat_arr_len; i++) {
 		if (!strncmp(scn_stat_arr[i].internal_name, name, detail::MAX_FILE_PATH)) {
 			if (scn_stat_arr[i].status != status) {
 				// Update the entry and re-write the file
