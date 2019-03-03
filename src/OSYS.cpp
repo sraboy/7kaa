@@ -2442,7 +2442,7 @@ static int detect_scenario_cheat_key(unsigned scanCode, unsigned skeyState)
          keyProcessed++;
          break;
 
-      case 's':
+      case 's': //------------ force current-default-view nation (CTRL+F) to surrender to player ------------//
          if( info.default_viewing_nation_recno &&
              nation_array.player_recno &&
              nation_array[info.default_viewing_nation_recno]->is_ai() )
@@ -2451,6 +2451,18 @@ static int detect_scenario_cheat_key(unsigned scanCode, unsigned skeyState)
          }
          keyProcessed++;
          break;
+
+      case 'y': //-- cause independent/rebel town to found a new nation --//
+          if( town_array.selected_recno )
+          {
+              townPtr = town_array[town_array.selected_recno];
+              if( townPtr->nation_recno == 0 && nation_array.nation_count < MAX_NATION )
+              {
+                  townPtr->form_new_nation();
+              }
+          }
+          keyProcessed++;
+          break;
    }
 
    return keyProcessed;

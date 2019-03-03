@@ -475,6 +475,62 @@ void News::new_king()
 //------- End of function News::new_king -----//
 
 
+const char *firm_destroyed_by_nation[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been destroyed by <King>'s Kingdom<Color>.
+	N_("Your Seat of Power near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Factory near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Inn near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Market near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Fort near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Mine near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Tower of Science near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your War Factory near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Harbor near %s has been destroyed by %s's Kingdom%s."),
+	N_("Your Fryhtan Lair near %s has been destroyed by %s's Kingdom%s."),
+};
+const char *firm_destroyed_by_rebels[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been destroyed by Rebels.
+	N_("Your Seat of Power near %s has been destroyed by Rebels."),
+	N_("Your Factory near %s has been destroyed by Rebels."),
+	N_("Your Inn near %s has been destroyed by Rebels."),
+	N_("Your Market near %s has been destroyed by Rebels."),
+	N_("Your Fort near %s has been destroyed by Rebels."),
+	N_("Your Mine near %s has been destroyed by Rebels."),
+	N_("Your Tower of Science near %s has been destroyed by Rebels."),
+	N_("Your War Factroy near %s has been destroyed by Rebels."),
+	N_("Your Harbor near %s has been destroyed by Rebels."),
+	N_("Your Fryhtan Lair near %s has been destroyed by Rebels."),
+};
+const char *firm_destroyed_by_monster[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been destroyed by Fryhtans.
+	N_("Your Seat of Power near %s has been destroyed by Fryhtans."),
+	N_("Your Factory near %s has been destroyed by Fryhtans."),
+	N_("Your Inn near %s has been destroyed by Fryhtans."),
+	N_("Your Market near %s has been destroyed by Fryhtans."),
+	N_("Your Fort near %s has been destroyed by Fryhtans."),
+	N_("Your Mine near %s has been destroyed by Fryhtans."),
+	N_("Your Tower of Science near %s has been destroyed by Fryhtans."),
+	N_("Your War Factory near %s has been destroyed by Fryhtans."),
+	N_("Your Harbor near %s has been destroyed by Fryhtans."),
+	N_("Your Fryhtan Lair near %s has been destroyed by Fryhtans."),
+};
+const char *firm_destroyed_by_unknown[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been destroyed.
+	N_("Your Seat of Power near %s has been destroyed."),
+	N_("Your Factory near %s has been destroyed."),
+	N_("Your Inn near %s has been destroyed."),
+	N_("Your Market near %s has been destroyed."),
+	N_("Your Fort near %s has been destroyed."),
+	N_("Your Mine near %s has been destroyed."),
+	N_("Your Tower of Science near %s has been destroyed."),
+	N_("Your War Factory near %s has been destroyed."),
+	N_("Your Harbor near %s has been destroyed."),
+	N_("Your Fryhtan Lair near %s has been destroyed."),
+};
 //------ Begin of function News::firm_destroyed -----//
 //
 // short_para1 - name id. of the firm destroyed.
@@ -496,29 +552,53 @@ void News::firm_destroyed()
 	// ##### patch end Gilbert 10/2 ######//
 	{
 		case DESTROYER_NATION:
-			// TRANSLATORS: Your <Firm> near <Town> has been destroyed by <King>'s Kingdom<Color>.
-			snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been destroyed by %s's Kingdom%s."), _(firm_res[short_para1]->name), town_res.get_name(short_para2), king_name2(), nation_color_str2());
+			snprintf(str, MAX_STR_LEN+1, firm_destroyed_by_nation[short_para1-1], town_res.get_name(short_para2), king_name2(), nation_color_str2());
 			break;
 
 		case DESTROYER_REBEL:
-			// TRANSLATORS: Your <Firm> near <Town> has been destroyed by Rebels.
-			snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been destroyed by Rebels."), _(firm_res[short_para1]->name), town_res.get_name(short_para2));
+			snprintf(str, MAX_STR_LEN+1, firm_destroyed_by_rebels[short_para1-1], town_res.get_name(short_para2));
 			break;
 
 		case DESTROYER_MONSTER:
-			// TRANSLATORS: Your <Firm> near <Town> has been destroyed by Fryhtans.
-			snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been destroyed by Fryhtans."), _(firm_res[short_para1]->name), town_res.get_name(short_para2));
+			snprintf(str, MAX_STR_LEN+1, firm_destroyed_by_monster[short_para1-1], town_res.get_name(short_para2));
 			break;
 
 		case DESTROYER_UNKNOWN:
-			// TRANSLATORS: Your <Firm> near <Town> has been destroyed.
-			snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been destroyed."), _(firm_res[short_para1]->name), town_res.get_name(short_para2));
+			snprintf(str, MAX_STR_LEN+1, firm_destroyed_by_unknown[short_para1-1], town_res.get_name(short_para2));
 			break;
 	}
 }
 //------- End of function News::firm_destroyed -----//
 
 
+const char *firm_captured_by_spy[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been captured by a spy from <King>'s Kingdom<Color>.
+	N_("Your Seat of Power near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Factory near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Inn near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Market near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Fort near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Mine near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Tower of Science near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your War Factory near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Harbor near %s has been captured by a spy from %s's Kingdom%s."),
+	N_("Your Fryhtan Lair near %s has been captured by a spy from %s's Kingdom%s."),
+};
+const char *firm_captured_by_worker[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been captured by <King>'s Kingdom<Color>.
+	N_("Your Seat of Power near %s has been captured by %s's Kingdom%s."),
+	N_("Your Factory near %s has been captured by %s's Kingdom%s."),
+	N_("Your Inn near %s has been captured by %s's Kingdom%s."),
+	N_("Your Market near %s has been captured by %s's Kingdom%s."),
+	N_("Your Fort near %s has been captured by %s's Kingdom%s."),
+	N_("Your Mine near %s has been captured by %s's Kingdom%s."),
+	N_("Your Tower of Science near %s has been captured by %s's Kingdom%s."),
+	N_("Your War Factory near %s has been captured by %s's Kingdom%s."),
+	N_("Your Harbor near %s has been captured by %s's Kingdom%s."),
+	N_("Your Fryhtan Lair near %s has been captured by %s's Kingdom%s."),
+};
 //------ Begin of function News::firm_captured -----//
 //
 // nation_name2() - name of the nation that took over your firm.
@@ -543,13 +623,11 @@ void News::firm_captured()
 
 	if( short_para3 )
 	{
-		// TRANSLATORS: Your <Firm> near <Town> has been captured by a spy from <King>'s Kingdom<Color>.
-		snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been captured by a spy from %s's Kingdom%s."), _(firm_res[short_para1]->name), town_res.get_name(short_para2), king_name2(), nation_color_str2());
+		snprintf(str, MAX_STR_LEN+1, firm_captured_by_spy[short_para1-1], town_res.get_name(short_para2), king_name2(), nation_color_str2());
 	}
 	else
 	{
-		// TRANSLATORS: Your <Firm> near <Town> has been captured by <King>'s Kingdom<Color>.
-		snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been captured by %s's Kingdom%s."), _(firm_res[short_para1]->name), town_res.get_name(short_para2), king_name2(), nation_color_str2());
+		snprintf(str, MAX_STR_LEN+1, firm_captured_by_worker[short_para1-1], town_res.get_name(short_para2), king_name2(), nation_color_str2());
 	}
 }
 //------- End of function News::firm_captured -----//
@@ -656,6 +734,23 @@ void News::town_surrendered()
 //------- End of function News::town_surrendered -----//
 
 
+const char *monster_king_killed_msg[] =
+{
+	// TRANSLATORS: An All High <monster type> has been slain.
+	N_("An All High Deezboanz has been slain."),
+	N_("An All High Rattus has been slain."),
+	N_("An All High Broosken has been slain."),
+	N_("An All High Haubudam has been slain."),
+	N_("An All High Pfith has been slain."),
+	N_("An All High Rokken has been slain."),
+	N_("An All High Doink has been slain."),
+	N_("An All High Wyrm has been slain."),
+	N_("An All High Droog has been slain."),
+	N_("An All High Ick has been slain."),
+	N_("An All High Sauroid has been slain."),
+	N_("An All High Karrotten has been slain."),
+	N_("An All High Holgh has been slain."),
+};
 //------ Begin of function News::monster_king_killed -----//
 //
 // short_para1 - monster id.
@@ -668,12 +763,28 @@ void News::monster_king_killed()
 	//
 	//----------------------------------------------//
 
-	// TRANSLATORS: An All High <monster type> has been slain.
-	snprintf(str, MAX_STR_LEN+1, _("An All High %s has been slain."), _(monster_res[short_para1]->name));
+	str = monster_king_killed_msg[short_para1-1];
 }
 //------- End of function News::monster_king_killed -----//
 
 
+const char *monster_firm_destroyed_msg[] =
+{
+	// TRANSLATORS: A <Fryhtan> Lair has been destroyed.
+	N_("A Deezboanz Lair has been destroyed."),
+	N_("A Rattus Lair has been destroyed."),
+	N_("A Broosken Lair has been destroyed."),
+	N_("A Haubudam Lair has been destroyed."),
+	N_("A Pfith Lair has been destroyed."),
+	N_("A Rokken Lair has been destroyed."),
+	N_("A Doink Lair has been destroyed."),
+	N_("A Wyrm Lair has been destroyed."),
+	N_("A Droog Lair has been destroyed."),
+	N_("An Ick Lair has been destroyed."),
+	N_("A Sauroid Lair has been destroyed."),
+	N_("A Karrotten Lair has been destroyed."),
+	N_("A Holgh Lair has been destroyed."),
+};
 //------ Begin of function News::monster_firm_destroyed -----//
 //
 // short_para1 - monster id.
@@ -686,14 +797,7 @@ void News::monster_firm_destroyed()
 	//
 	//----------------------------------------------//
 
-	const char* nameStr = _(monster_res[short_para1]->name);
-
-	if( nameStr[0] == 'I' )		// "An Ick Lair"
-		// TRANSLATORS: An Ick Lair has been destroyed.
-		snprintf(str, MAX_STR_LEN+1, _("An %s Lair has been destroyed."), nameStr);
-	else
-		// TRANSLATORS: A <Fryhtan> Lair has been destroyed.
-		snprintf(str, MAX_STR_LEN+1, _("A %s Lair has been destroyed."), nameStr);
+	str = monster_firm_destroyed_msg[short_para1-1];
 }
 //------- End of function News::monster_firm_destroyed -----//
 
@@ -747,6 +851,34 @@ void News::monster_gold_acquired()
 //------- End of function News::monster_gold_acquired -----//
 
 
+const char *your_spy_killed_in_firm_by_nation[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your spy has been exposed and executed on his mission to a <Firm> near <Town> in <King>'s Kingdom<Color>.
+	N_("Your spy has been exposed and executed on his mission to a Seat of Power near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Factory near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Inn near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Market near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Fort near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Mine near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Tower of Science near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a War Factory near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Harbor near %s in %s's Kingdom%s."),
+	N_("Your spy has been exposed and executed on his mission to a Fryhtan Lair near %s in %s's Kingdom%s."),
+};
+const char *your_spy_killed_in_firm[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your spy has been exposed and executed on his mission to a <Firm> near <Town>.
+	N_("Your spy has been exposed and executed on his mission to a Seat of Power near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Factory near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Inn near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Market near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Fort near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Mine near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Tower of Science near %s."),
+	N_("Your spy has been exposed and executed on his mission to a War Factory near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Harbor near %s."),
+	N_("Your spy has been exposed and executed on his mission to a Fryhtan Lair near %s."),
+};
 //------ Begin of function News::your_spy_killed -----//
 //
 // nation_name1() - your nation.
@@ -778,13 +910,11 @@ void News::your_spy_killed()
 	{
 		if( nation_name_id2 )		// not for independent town.
 		{
-			// TRANSLATORS: Your spy has been exposed and executed on his mission to a <Firm> near <Town> in <King>'s Kingdom<Color>.
-			snprintf(str, MAX_STR_LEN+1, _("Your spy has been exposed and executed on his mission to a %s near %s in %s's Kingdom%s."), _(firm_res[short_para1]->name), town_res.get_name(short_para2), king_name2(), nation_color_str2());
+			snprintf(str, MAX_STR_LEN+1, your_spy_killed_in_firm_by_nation[short_para1-1], town_res.get_name(short_para2), king_name2(), nation_color_str2());
 		}
 		else
 		{
-			// TRANSLATORS: Your spy has been exposed and executed on his mission to a <Firm> near <Town>.
-			snprintf(str, MAX_STR_LEN+1, _("Your spy has been exposed and executed on his mission to a %s near %s."), _(firm_res[short_para1]->name), town_res.get_name(short_para2));
+			snprintf(str, MAX_STR_LEN+1, your_spy_killed_in_firm[short_para1-1], town_res.get_name(short_para2));
 		}
 	}
 	else if( short_para3 == SPY_TOWN )
@@ -817,6 +947,20 @@ void News::your_spy_killed()
 //------- End of function News::your_spy_killed -----//
 
 
+const char *enemy_spy_killed_in_firm[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: A spy from <King>'s Kingdom<Color> has been uncovered and executed in your <Firm> near <Town>.
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Seat of Power near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Factory near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Inn near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Market near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Fort near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Mine near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Tower of Science near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your War Factory near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Harbor near %s."),
+	N_("A spy from %s's Kingdom%s has been uncovered and executed in your Fryhtan Lair near %s."),
+};
 //------ Begin of function News::enemy_spy_killed -----//
 //
 // nation_name1() - your nation.
@@ -846,8 +990,7 @@ void News::enemy_spy_killed()
 	{
 		if( short_para3==SPY_FIRM )
 		{
-			// TRANSLATORS: A spy from <King>'s Kingdom<Color> has been uncovered and executed in your <Firm> near <Town>.
-			snprintf(str, MAX_STR_LEN+1, _("A spy from %s's Kingdom%s has been uncovered and executed in your %s near %s."), king_name2(), nation_color_str2(), _(firm_res[short_para1]->name), town_res.get_name(short_para2));
+			snprintf(str, MAX_STR_LEN+1, enemy_spy_killed_in_firm[short_para1-1], king_name2(), nation_color_str2(), town_res.get_name(short_para2));
 		}
 		else
 		{
@@ -1027,6 +1170,13 @@ void News::assassinator_caught()
 //------- End of function News::assassinator_caught -----//
 
 
+const char *raw_exhaust_msg[MAX_RAW] =
+{
+	// TRANSLATORS: Your <Clay/Copper/Iron> Mine has exhausted its <Clay/Copper/Iron> deposit.
+	N_("Your Clay Mine has exhausted its Clay deposit."),
+	N_("Your Copper Mine has exhausted its Copper deposit."),
+	N_("Your Iron Mine has exhausted its Iron deposit."),
+};
 //------ Begin of function News::raw_exhaust -----//
 //
 // short_para1 - raw id.
@@ -1039,12 +1189,35 @@ void News::raw_exhaust()
 	//
 	//----------------------------------------------//
 
-	// TRANSLATORS: Your <Clay/Copper/Iron> Mine has exhausted its <Clay/Copper/Iron> deposit.
-	snprintf(str, MAX_STR_LEN+1, _("Your %s Mine has exhausted its %s deposit."), _(raw_res[short_para1]->name), _(raw_res[short_para1]->name));
+	str = raw_exhaust_msg[short_para1-1];
 }
 //------- End of function News::raw_exhaust -----//
 
 
+const char *tech_researched_level_msg[] =
+{
+	// TRANSLATORS: Your scientists have finished their <Tech> Mark <Level Roman Numeral> research.
+	N_("Your scientists have finished their Catapult Mark %s research."),
+	N_("Your scientists have finished their Porcupine Mark %s research."),
+	N_("Your scientists have finished their Ballista Mark %s research."),
+	N_("Your scientists have finished their Cannon Mark %s research."),
+	N_("Your scientists have finished their Spitfire Mark %s research."),
+	N_("Your scientists have finished their Caravel Mark %s research."),
+	N_("Your scientists have finished their Galleon Mark %s research."),
+	N_("Your scientists have finished their Unicorn Mark %s research."),
+};
+const char *tech_researched_msg[] =
+{
+	// TRANSLATORS: Your scientists have finished their <Tech> research.
+	N_("Your scientists have finished their Catapult research."),
+	N_("Your scientists have finished their Porcupine research."),
+	N_("Your scientists have finished their Ballista research."),
+	N_("Your scientists have finished their Cannon research."),
+	N_("Your scientists have finished their Spitfire research."),
+	N_("Your scientists have finished their Caravel research."),
+	N_("Your scientists have finished their Galleon research."),
+	N_("Your scientists have finished their Unicorn research."),
+};
 //------ Begin of function News::tech_researched -----//
 //
 // short_para1 - tech id.
@@ -1061,18 +1234,72 @@ void News::tech_researched()
 
 	if( tech_res[short_para1]->max_tech_level > 1 )		// if the tech has more than one level
 	{
-		// TRANSLATORS: Your scientists have finished their <Tech> Mark <Level> research.
-		snprintf(str, MAX_STR_LEN+1, _("Your scientists have finished their %s Mark %s research."), tech_res[short_para1]->tech_des(), misc.roman_number(short_para2));
+		snprintf(str, MAX_STR_LEN+1, tech_researched_level_msg[short_para1-1], misc.roman_number(short_para2));
 	}
 	else
 	{
-		// TRANSLATORS: Your scientists have finished their <Tech> research.
-		snprintf(str, MAX_STR_LEN+1, _("Your scientists have finished their %s research."), tech_res[short_para1]->tech_des());
+		str = tech_researched_msg[short_para1-1];
 	}
 }
 //------- End of function News::tech_researched -----//
 
 
+const char *lightning_destroyed_firm_near_town[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been destroyed by lightning.
+	N_("Your Seat of Power near %s has been destroyed by lightning."),
+	N_("Your Factory near %s has been destroyed by lightning."),
+	N_("Your Inn near %s has been destroyed by lightning."),
+	N_("Your Market near %s has been destroyed by lightning."),
+	N_("Your Fort near %s has been destroyed by lightning."),
+	N_("Your Mine near %s has been destroyed by lightning."),
+	N_("Your Tower of Science near %s has been destroyed by lightning."),
+	N_("Your War Factory near %s has been destroyed by lightning."),
+	N_("Your Harbor near %s has been destroyed by lightning."),
+	N_("Your Fryhtan Lair near %s has been destroyed by lightning."),
+};
+const char *lightning_damaged_firm_near_town[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has been struck by lightning.
+	N_("Your Seat of Power near %s has been struck by lightning."),
+	N_("Your Factory near %s has been struck by lightning."),
+	N_("Your Inn near %s has been struck by lightning."),
+	N_("Your Market near %s has been struck by lightning."),
+	N_("Your Fort near %s has been struck by lightning."),
+	N_("Your Mine near %s has been struck by lightning."),
+	N_("Your Tower of Science near %s has been struck by lightning."),
+	N_("Your War Factory near %s has been struck by lightning."),
+	N_("Your Harbor near %s has been struck by lightning."),
+	N_("Your Fryhtan Lair near %s has been struck by lightning."),
+};
+const char *lightning_destroyed_firm[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> has been destroyed by lightning.
+	N_("Your Seat of Power has been destroyed by lightning."),
+	N_("Your Factory has been destroyed by lightning."),
+	N_("Your Inn has been destroyed by lightning."),
+	N_("Your Market has been destroyed by lightning."),
+	N_("Your Fort has been destroyed by lightning."),
+	N_("Your Mine has been destroyed by lightning."),
+	N_("Your Tower of Science has been destroyed by lightning."),
+	N_("Your War Factory has been destroyed by lightning."),
+	N_("Your Harbor has been destroyed by lightning."),
+	N_("Your Fryhtan Lair has been destroyed by lightning."),
+};
+const char *lightning_damaged_firm[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> has been struck by lightning.
+	N_("Your Seat of Power has been struck by lightning."),
+	N_("Your Factory has been struck by lightning."),
+	N_("Your Inn has been struck by lightning."),
+	N_("Your Market has been struck by lightning."),
+	N_("Your Fort has been struck by lightning."),
+	N_("Your Mine has been struck by lightning."),
+	N_("Your Tower of Science has been struck by lightning."),
+	N_("Your War Factory has been struck by lightning."),
+	N_("Your Harbor has been struck by lightning."),
+	N_("Your Fryhtan Lair has been struck by lightning."),
+};
 //------ Begin of function News::lightning_damage -----//
 //
 void News::lightning_damage()
@@ -1143,26 +1370,22 @@ void News::lightning_damage()
 		{
 			if( short_para5 )
 			{
-				// TRANSLATORS: Your <Firm> near <Town> has been destroyed by lightning.
-				snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been destroyed by lightning."), _(firm_res[short_para2]->name), town_res.get_name(short_para3));
+				snprintf(str, MAX_STR_LEN+1, lightning_destroyed_firm_near_town[short_para2-1], town_res.get_name(short_para3));
 			}
 			else
 			{
-				// TRANSLATORS: Your <Firm> near <Town> has been struck by lightning.
-				snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has been struck by lightning."), _(firm_res[short_para2]->name), town_res.get_name(short_para3));
+				snprintf(str, MAX_STR_LEN+1, lightning_damaged_firm_near_town[short_para2-1], town_res.get_name(short_para3));
 			}
 		}
 		else
 		{
 			if( short_para5 )
 			{
-				// TRANSLATORS: Your <Firm> has been destroyed by lightning.
-				snprintf(str, MAX_STR_LEN+1, _("Your %s has been destroyed by lightning."), _(firm_res[short_para2]->name));
+				str = lightning_destroyed_firm[short_para2-1];
 			}
 			else
 			{
-				// TRANSLATORS: Your <Firm> has been struck by lightning.
-				snprintf(str, MAX_STR_LEN+1, _("Your %s has been struck by lightning."), _(firm_res[short_para2]->name));
+				str = lightning_damaged_firm[short_para2-1];
 			}
 		}
 		break;
@@ -1311,6 +1534,21 @@ void News::goal_deadline()
 //------- End of function News::goal_deadline -----//
 
 
+const char *weapon_ship_worn_out_msg[UNIT_GALLEON-UNIT_CATAPULT+1] =
+{
+	// TRANSLATORS: A <Weapon> <Tech Level Number> of yours has broken down due to the lack of maintenance funds.
+	N_("A Catapult %s of yours has broken down due to the lack of maintenance funds."),
+	N_("A Ballista %s of yours has broken down due to the lack of maintenance funds."),
+	N_("A Spitfire %s of yours has broken down due to the lack of maintenance funds."),
+	N_("A Cannon %s of yours has broken down due to the lack of maintenance funds."),
+	N_("A Porcupine %s of yours has broken down due to the lack of maintenance funds."),
+	// TRANSLATORS: A <Ship> of yours has broken down due to the lack of maintenance funds.
+	N_("A Trader of yours has broken down due to the lack of maintenance funds."),
+	N_("A Transport of yours has broken down due to the lack of maintenance funds."),
+	N_("A Caravel of yours has broken down due to the lack of maintenance funds."),
+	N_("A Galleon of yours has broken down due to the lack of maintenance funds."),
+};
+const char *unicorn_worn_out_msg = N_("A Unicorn %s of yours has broken down due to the lack of maintenance funds.");
 //------ Begin of function News::weapon_ship_worn_out -----//
 //
 // Your weapon or ship worn out and destroyed due to lack of money for
@@ -1328,22 +1566,38 @@ void News::weapon_ship_worn_out()
 	//
 	//----------------------------------------------//
 
-	String tmp(_(unit_res[short_para1]->name));
-
-	if( short_para2 )
+	if( short_para1 == UNIT_F_BALLISTA )
 	{
-		tmp += " ";
-		tmp += misc.roman_number(short_para2);
+		// unicorn is separate in the dbf, handle directly
+		snprintf(str, MAX_STR_LEN+1, unicorn_worn_out_msg, misc.roman_number(short_para2));
 	}
-
-	const char* weapon = tmp;
-
-	// TRANSLATORS: A <Weapon/Ship> of yours has broken down due to the lack of maintenance funds.
-	snprintf(str, MAX_STR_LEN+1, _("A %s of yours has broken down due to the lack of maintenance funds."), weapon);
+	else if( short_para2 )
+	{
+		snprintf(str, MAX_STR_LEN+1, weapon_ship_worn_out_msg[short_para1-UNIT_CATAPULT], misc.roman_number(short_para2));
+	}
+	else
+	{
+		str = weapon_ship_worn_out_msg[short_para1-UNIT_CATAPULT];
+	}
 }
 //------- End of function News::weapon_ship_worn_out -----//
 
 
+const char *firm_worn_out_near_town_msg[MAX_FIRM_TYPE] =
+{
+	// TRANSLATORS: Your <Firm> near <Town> has fallen into disrepair due to the lack of maintenance funds.
+	N_("Your Seat of Power near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Factory near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Inn near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Market near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Fort near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Mine near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Tower of Science near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your War Factory near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Harbor near %s has fallen into disrepair due to the lack of maintenance funds."),
+	N_("Your Fryhtan Lair near %s has fallen into disrepair due to the lack of maintenance funds."),
+
+};
 //------ Begin of function News::firm_worn_out -----//
 //
 // short_para1 - id. of the firm destroyed.
@@ -1358,8 +1612,7 @@ void News::firm_worn_out()
 	//
 	//----------------------------------------------//
 
-	// TRANSLATORS: Your <Firm> near <Town> has fallen into disrepair due to the lack of maintenance funds.
-	snprintf(str, MAX_STR_LEN+1, _("Your %s near %s has fallen into disrepair due to the lack of maintenance funds."), _(firm_res[short_para1]->name), town_res.get_name(short_para2));
+	snprintf(str, MAX_STR_LEN+1, firm_worn_out_near_town_msg[short_para1-1], town_res.get_name(short_para2));
 }
 //------- End of function News::firm_worn_out -----//
 
